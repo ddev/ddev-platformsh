@@ -8,7 +8,7 @@ setup() {
   ddev delete -Oy ${PROJNAME} || true
   cd "${TESTDIR}"
   ddev config --project-name=${PROJNAME}
-  ddev start
+  ddev start -y
 }
 
 teardown() {

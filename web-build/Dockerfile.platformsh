@@ -1,0 +1,2 @@
+# Get latest platform tool at time of project creation
+RUN platform self:update -y

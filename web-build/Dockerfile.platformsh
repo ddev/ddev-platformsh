@@ -1,2 +1,3 @@
 # Get latest platform tool at time of project creation
-RUN platform self:update -y --no-major
+# platform self:update fails if there are no updates, and also fails if no internet
+RUN platform self:update -y --no-major || true

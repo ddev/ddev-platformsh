@@ -1,14 +1,16 @@
-name: platformsh
+name: ddev-platformsh
 
 pre_install_actions:
-  - ddev debug capabilities | grep multiple-dockerfiles || echo "Please upgrade ddev to v1.19.3+ to support multiple Dockerfiles" && exit 3
+  - |
+    #ddev-nodisplay
+    ddev debug capabilities | grep multiple-dockerfiles || echo "Please upgrade ddev to v1.19.3+ to support multiple Dockerfiles" && exit 3
 
 project_files:
   - docker-compose.platformsh.yaml
-  - web-build
+  - web-build/Dockerfile.platformsh
 
 global_files:
-  - commands
+  - commands/web/platform
 
 post_install_actions:
 

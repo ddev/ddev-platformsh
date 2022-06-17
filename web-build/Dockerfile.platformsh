@@ -1,3 +1,4 @@
+#ddev-generated
 # Get latest platform tool at time of project creation
 # platform self:update fails if there are no updates, and also fails if no internet
 RUN platform self:update -y --no-major || true

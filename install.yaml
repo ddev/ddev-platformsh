@@ -3,7 +3,7 @@ name: ddev-platformsh
 pre_install_actions:
   - |
     #ddev-nodisplay
-    ddev debug capabilities | grep multiple-dockerfiles || echo "Please upgrade ddev to v1.19.3+ to support multiple Dockerfiles" && exit 3
+    ddev debug capabilities | grep ddev-get-yaml-interpolation || echo "Please upgrade ddev to v1.19.4+ to support yaml interpolation" && exit 3
 
 project_files:
   - docker-compose.platformsh.yaml

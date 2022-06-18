@@ -6,7 +6,7 @@ pre_install_actions:
     #ddev-nodisplay
     (ddev debug capabilities | grep ddev-get-yaml-interpolation) || (echo "Please upgrade ddev to v1.19.4+ to support yaml interpolation" && false)
     
-    # Write a config.platformsh.yaml based on calculated values
+    # Write a config.platformsh.yaml based on calculated values, php version, database, docroot
   - |
       set -x
       cat <<EOF >.ddev/config.platformsh.yaml
@@ -25,15 +25,17 @@ pre_install_actions:
       {{ end }}
       EOF
 
-#        {{ if .platformapp.hooks.deploy }}
-#        - exec: "{{ trimAll "\n" .platformapp.hooks.deploy | splitList "\n" | join ` && ` }}"
-#        {{ end }}
+    # todo: Figure out how hooks are to be executed locally
+    #        {{ if .platformapp.hooks.deploy }}
+    #        - exec: "{{ trimAll "\n" .platformapp.hooks.deploy | splitList "\n" | join ` && ` }}"
+    #        {{ end }}
+
 
   # If redis configured, do a ddev get to get it
-#  - |
-#      {{ if eq .services.cache.type "redis:6.0" }}
-#      ddev get drud/ddev-redis
-#      {{ end }}
+  - |
+      {{ if eq .services.cache.type "redis:6.0" }}
+      ddev get drud/ddev-redis
+      {{ end }}
 
 project_files:
   - docker-compose.platformsh.yaml

@@ -30,6 +30,21 @@ pre_install_actions:
     #        - exec: "{{ trimAll "\n" .platformapp.hooks.deploy | splitList "\n" | join ` && ` }}"
     #        {{ end }}
 
+    # Warn about database type problem
+  - |
+      set -x
+      if docker volume ls | grep ${DDEV_PROJECT}-mariadb; then
+        db_version=$(docker run --rm -w /db -v ${DDEV_PROJECT}-mariadb:/db busybox cat db_mariadb_version.txt)
+        echo "Current db is ${db_version}"
+        echo "New db is ${DDEV_DATABASE}"
+        if [ "${db_version/_/:}" != "${DDEV_DATABASE}" ]; then
+          echo "Old and new versions are different; "
+        else
+          echo "database versions match: ${db_version/_/:/}=${DDEV_DATABASE}"
+        fi
+      else 
+        echo "No existing database"
+      fi
 
   # If redis configured, do a ddev get to get it
   - |

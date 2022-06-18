@@ -1,9 +1,39 @@
 name: ddev-platformsh
 
 pre_install_actions:
+    # Make sure we have a ddev version that can support what we do here
   - |
     #ddev-nodisplay
-    ddev debug capabilities | grep ddev-get-yaml-interpolation || echo "Please upgrade ddev to v1.19.4+ to support yaml interpolation" && exit 3
+    (ddev debug capabilities | grep ddev-get-yaml-interpolation) || (echo "Please upgrade ddev to v1.19.4+ to support yaml interpolation" && false)
+    
+    # Write a config.platformsh.yaml based on calculated values
+  - |
+      set -x
+      cat <<EOF >.ddev/config.platformsh.yaml
+      # #ddev-generated
+      # Generated configuration based on platform.sh project configuration
+      php_version: {{ trimPrefix "php:" .platformapp.type }}
+      database:
+        type: {{ regexReplaceAll "oracle-" (regexReplaceAll ":.*$" .services.dbmysql.type "") "" }}
+        version: {{ regexReplaceAll "^.*:" .services.dbmysql.type "" }}
+    
+      docroot: {{ dig "web" "locations" "/" "root" "notfound" .platformapp }}
+      {{ if eq .platformapp.build.flavor "composer" }}
+      hooks:
+        post-start:
+        - composer: install
+      {{ end }}
+      EOF
+
+#        {{ if .platformapp.hooks.deploy }}
+#        - exec: "{{ trimAll "\n" .platformapp.hooks.deploy | splitList "\n" | join ` && ` }}"
+#        {{ end }}
+
+  # If redis configured, do a ddev get to get it
+#  - |
+#      {{ if eq .services.cache.type "redis:6.0" }}
+#      ddev get drud/ddev-redis
+#      {{ end }}
 
 project_files:
   - docker-compose.platformsh.yaml
@@ -13,4 +43,8 @@ global_files:
   - commands/web/platform
 
 post_install_actions:
+
+yaml_read_files:
+  platformapp: .platform.app.yaml
+  services: .platform/services.yaml
 

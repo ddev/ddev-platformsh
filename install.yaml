@@ -4,32 +4,47 @@ pre_install_actions:
     # Make sure we have a ddev version that can support what we do here
   - |
     #ddev-nodisplay
-    (ddev debug capabilities | grep ddev-get-yaml-interpolation) || (echo "Please upgrade ddev to v1.19.4+ to support yaml interpolation" && false)
+    (ddev debug capabilities | grep ddev-get-yaml-interpolation >/dev/null) || (echo "Please upgrade ddev to v1.19.4+ to support yaml interpolation" && false)
+
+  - |
+    #ddev-nodisplay
+    if ( {{ contains "PLATFORMSH_CLI_TOKEN" (list .DdevGlobalConfig.web_environment | toString) }} || {{ contains "PLATFORMSH_CLI_TOKEN" (list .DdevProjectConfig.web_environment | toString) }} ); then
+      echo "Using existing PLATFORMSH_CLI_TOKEN."
+    else
+      printf "Please enter your platform.sh token: "
+    fi
+
+  - |
+    #ddev-nodisplay
+    if !( {{ contains "PLATFORMSH_CLI_TOKEN" (list .DdevGlobalConfig.web_environment | toString) }} || {{ contains "PLATFORMSH_CLI_TOKEN" (list .DdevProjectConfig.web_environment | toString) }} ); then
+      read token
+      echo "token read"
+    fi
     
     # We don't want to allow new config if they're changing database types from what is currently there.
   - |
+      #ddev-nodisplay
       #todo: This simplistic approach doesn't work for postgres; volume name is different
       #and the database type file is different too
-    if docker volume ls | grep ${DDEV_PROJECT}-mariadb; then
-      export current_db_version="$(docker run --rm -w /db -v ${DDEV_PROJECT}-mariadb:/db busybox cat db_mariadb_version.txt)"
-      if [ -z "${current_db_version}" ]; then
-        echo "something went wrong, current_db_version is empty" && false
+      if docker volume ls | grep ${DDEV_PROJECT}-mariadb; then
+        export current_db_version="$(docker run --rm -w /db -v ${DDEV_PROJECT}-mariadb:/db busybox cat db_mariadb_version.txt)"
+        if [ -z "${current_db_version}" ]; then
+          echo "something went wrong, current_db_version is empty" && false
+        fi
+        export upstream_db="{{ regexReplaceAll "oracle-" (regexReplaceAll ":.*$" .services.dbmysql.type "") "" }}:{{ regexReplaceAll "^.*:" .services.dbmysql.type "" }}"
+        echo "Current db is ${current_db_version/_/:} (${current_db_version})"
+        echo "New db is ${upstream_db}"
+        if [ "${current_db_version/_/:}" != "${upstream_db}" ]; then
+          printf "There is an existing database in this project that doesn\'t match the upstream database type.\nPlease back up this database and then \"ddev delete\" so the new database can be created.\n"
+          false
+        else
+          echo "database versions match: ${current_db_version/_/:}=${upstream_db}"
+        fi
       fi
-      export upstream_db="{{ regexReplaceAll "oracle-" (regexReplaceAll ":.*$" .services.dbmysql.type "") "" }}:{{ regexReplaceAll "^.*:" .services.dbmysql.type "" }}"
-      echo "Current db is ${current_db_version/_/:} (${current_db_version})"
-      echo "New db is ${upstream_db}"
-      if [ "${current_db_version/_/:}" != "${upstream_db}" ]; then
-        printf "There is an existing database in this project that doesn\'t match the upstream database type.\nPlease back up this database and then \"ddev delete\" so the new database can be created.\n"
-        false
-      else
-        echo "database versions match: ${current_db_version/_/:}=${upstream_db}"
-      fi
-    fi
-
 
     # Write a config.platformsh.yaml based on calculated values, php version, database, docroot
   - |
-      set -x
+      #ddev-nodisplay
       cat <<EOF >.ddev/config.platformsh.yaml
       # #ddev-generated
       # Generated configuration based on platform.sh project configuration
@@ -51,11 +66,6 @@ pre_install_actions:
     #        - exec: "{{ trimAll "\n" .platformapp.hooks.deploy | splitList "\n" | join ` && ` }}"
     #        {{ end }}
 
-  # If redis configured, do a ddev get to get it
-  - |
-      {{ if eq .services.cache.type "redis:6.0" }}
-      ddev get drud/ddev-redis
-      {{ end }}
 
 project_files:
   - docker-compose.platformsh.yaml
@@ -65,6 +75,13 @@ global_files:
   - commands/web/platform
 
 post_install_actions:
+# If redis is configured, do a ddev get to get it
+- |
+  #ddev-nodisplay
+  {{ if eq .services.cache.type "redis:6.0" }}
+  echo "Doing 'ddev get drud/ddev-redis'"
+  ddev get drud/ddev-redis
+  {{ end }}
 
 yaml_read_files:
   platformapp: .platform.app.yaml

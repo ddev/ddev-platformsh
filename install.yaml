@@ -59,12 +59,11 @@ pre_install_actions:
         post-start:
         - composer: install
       {{ end }}
-      EOF
 
-    # todo: Figure out how hooks are to be executed locally
-    #        {{ if .platformapp.hooks.deploy }}
-    #        - exec: "{{ trimAll "\n" .platformapp.hooks.deploy | splitList "\n" | join ` && ` }}"
-    #        {{ end }}
+      {{ if .platformapp.hooks.deploy }}
+        - exec: {{ trimAll "\n" .platformapp.hooks.deploy | splitList "\n"  | join ` && ` | replace `php ./drush/platformsh_generate_drush_yml.php &&` `` }}
+      {{ end }}
+      EOF
 
 
 project_files:

@@ -51,6 +51,8 @@ pre_install_actions:
       # #ddev-generated
       # Generated configuration based on platform.sh project configuration
       php_version: {{ trimPrefix "php:" .platformapp.type }}
+      working_dir: 
+        web: /app
       database:
         type: {{ regexReplaceAll "oracle-" (regexReplaceAll ":.*$" .services.dbmysql.type "") "" }}
         version: {{ regexReplaceAll "^.*:" .services.dbmysql.type "" }}

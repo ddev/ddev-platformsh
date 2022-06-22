@@ -1,7 +1,7 @@
 setup() {
   set -eu -o pipefail
   export DIR="$( cd "$( dirname "$BATS_TEST_FILENAME" )" >/dev/null 2>&1 && pwd )/.."
-  export TESTDIR=~/tmp/testelasticsearch
+  export TESTDIR=~/tmp/testplatformsh
   mkdir -p $TESTDIR
   cp -r tests/testdata/.platform* ${TESTDIR}
   export PROJNAME=test-platformsh
@@ -23,17 +23,19 @@ teardown() {
   cd ${TESTDIR}
   echo "# ddev get ${DIR} with project ${PROJNAME} in ${TESTDIR} ($(pwd))" >&3
   ddev get ${DIR}
-  ddev restart
+  ddev restart >/dev/null
   [ "$(ddev exec -s db 'echo ${DDEV_DATABASE}')" = "mysql:8.0" ]
   [ "$(ddev exec 'echo ${DDEV_PHP_VERSION}')" = "8.0" ]
   docker inspect ddev-${PROJNAME}-redis >/dev/null
 }
 
-# Can't do release yet
-#@test "install from release" {
-#  set -eu -o pipefail
-#  cd ${TESTDIR} || ( printf "unable to cd to ${TESTDIR}\n" && exit 1 )
-#  echo "# ddev get drud/ddev-platformsh with project ${PROJNAME} in ${TESTDIR} ($(pwd))" >&3
-#  ddev get drud/ddev-addon-template
-#  ddev restart
-#}
+@test "install from release" {
+  set -eu -o pipefail
+  cd ${TESTDIR} || ( printf "unable to cd to ${TESTDIR}\n" && exit 1 )
+  echo "# ddev get drud/ddev-platformsh with project ${PROJNAME} in ${TESTDIR} ($(pwd))" >&3
+  ddev get platformsh/ddev-platformsh
+  ddev restart >/dev/null
+  [ "$(ddev exec -s db 'echo ${DDEV_DATABASE}')" = "mysql:8.0" ]
+  [ "$(ddev exec 'echo ${DDEV_PHP_VERSION}')" = "8.0" ]
+  docker inspect ddev-${PROJNAME}-redis >/dev/null
+}

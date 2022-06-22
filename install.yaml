@@ -1,23 +1,89 @@
-name: addon-template
+name: ddev-platformsh
 
-# pre_install_actions - list of actions to run before installing the addon.
-# Examples would be removing an extraneous docker volume,
-# or doing a sanity check for requirements.
 pre_install_actions:
-# - 'if [ "$(arch)" = "arm64" -o "$(arch)" = "aarch64" ]; then echo "This package does not work on arm64 machines"; exit 1; fi'
-# - "docker volume rm ddev-${DDEV_PROJECT}_solr 2>/dev/null || true"
+    # Make sure we have a ddev version that can support what we do here
+  - |
+    #ddev-nodisplay
+    (ddev debug capabilities | grep ddev-get-yaml-interpolation >/dev/null) || (echo "Please upgrade ddev to v1.19.4+ to support yaml interpolation" && false)
 
-# list of files and directories listed that are copied into project .ddev directory
+  - |
+    #ddev-nodisplay
+    if ( {{ contains "PLATFORMSH_CLI_TOKEN" (list .DdevGlobalConfig.web_environment | toString) }} || {{ contains "PLATFORMSH_CLI_TOKEN" (list .DdevProjectConfig.web_environment | toString) }} ); then
+      echo "Using existing PLATFORMSH_CLI_TOKEN."
+    else
+      printf "Please enter your platform.sh token: "
+    fi
+
+  - |
+    #ddev-nodisplay
+    if !( {{ contains "PLATFORMSH_CLI_TOKEN" (list .DdevGlobalConfig.web_environment | toString) }} || {{ contains "PLATFORMSH_CLI_TOKEN" (list .DdevProjectConfig.web_environment | toString) }} ); then
+      read token
+      # Put the token in to the project web environment
+      ddev config --web-environment-add PLATFORMSH_CLI_TOKEN=${token}
+      echo "PLATFORMSH_CLI_TOKEN set for project"
+    fi
+    
+    # We don't want to allow new config if they're changing database types from what is currently there.
+  - |
+      #ddev-nodisplay
+      #todo: This simplistic approach doesn't work for postgres; volume name is different
+      #and the database type file is different too
+      if docker volume ls | grep ${DDEV_PROJECT}-mariadb; then
+        export current_db_version="$(docker run --rm -w /db -v ${DDEV_PROJECT}-mariadb:/db busybox cat db_mariadb_version.txt)"
+        if [ -z "${current_db_version}" ]; then
+          echo "something went wrong, current_db_version is empty" && false
+        fi
+        export upstream_db="{{ regexReplaceAll "oracle-" (regexReplaceAll ":.*$" .services.dbmysql.type "") "" }}:{{ regexReplaceAll "^.*:" .services.dbmysql.type "" }}"
+        echo "Current db is ${current_db_version/_/:} (${current_db_version})"
+        echo "New db is ${upstream_db}"
+        if [ "${current_db_version/_/:}" != "${upstream_db}" ]; then
+          printf "There is an existing database in this project that doesn\'t match the upstream database type.\nPlease back up this database and then \"ddev delete\" so the new database can be created.\n"
+          false
+        else
+          echo "database versions match: ${current_db_version/_/:}=${upstream_db}"
+        fi
+      fi
+
+    # Write a config.platformsh.yaml based on calculated values, php version, database, docroot
+  - |
+      #ddev-nodisplay
+      cat <<EOF >.ddev/config.platformsh.yaml
+      # #ddev-generated
+      # Generated configuration based on platform.sh project configuration
+      php_version: {{ trimPrefix "php:" .platformapp.type }}
+      database:
+        type: {{ regexReplaceAll "oracle-" (regexReplaceAll ":.*$" .services.dbmysql.type "") "" }}
+        version: {{ regexReplaceAll "^.*:" .services.dbmysql.type "" }}
+    
+      docroot: {{ dig "web" "locations" "/" "root" "notfound" .platformapp }}
+      {{ if eq .platformapp.build.flavor "composer" }}
+      hooks:
+        post-start:
+        - composer: install
+      {{ end }}
+
+      {{ if .platformapp.hooks.deploy }}
+        - exec: {{ trimAll "\n" .platformapp.hooks.deploy | splitList "\n"  | join `&&` }}
+      {{ end }}
+      EOF
+
+
 project_files:
-- docker-compose.addon-template.yaml
-# - extra_files/
-# - somefile.sh
+  - web-build/Dockerfile.platformsh
 
-# List of files and directories that are copied into the global .ddev directory
 global_files:
-# - commands
-# - homeadditions
+  - commands/web/platform
 
 post_install_actions:
-# - chmod +x ~/.ddev/commands/web/somecommand
-# - perl -pi -e 's/oldstring/newstring/g' docker-compose.addon-template.yaml
+# If redis is configured, do a ddev get to get it
+- |
+  #ddev-nodisplay
+  {{ if eq .services.cache.type "redis:6.0" }}
+  echo "Doing 'ddev get drud/ddev-redis'"
+  ddev get drud/ddev-redis
+  {{ end }}
+
+yaml_read_files:
+  platformapp: .platform.app.yaml
+  services: .platform/services.yaml
+

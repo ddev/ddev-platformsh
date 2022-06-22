@@ -3,12 +3,12 @@ setup() {
   export DIR="$( cd "$( dirname "$BATS_TEST_FILENAME" )" >/dev/null 2>&1 && pwd )/.."
   export TESTDIR=~/tmp/testelasticsearch
   mkdir -p $TESTDIR
-  export PROJNAME=test-addon-template
+  cp -r tests/testdata/.platform* ${TESTDIR}
+  export PROJNAME=test-platformsh
   export DDEV_NON_INTERACTIVE=true
   ddev delete -Oy ${PROJNAME} || true
   cd "${TESTDIR}"
-  ddev config --project-name=${PROJNAME}
-  ddev start -y
+  ddev config --project-name=${PROJNAME} --web-environment-add=PLATFORMSH_CLI_TOKEN=notokenrightnow
 }
 
 teardown() {
@@ -24,16 +24,16 @@ teardown() {
   echo "# ddev get ${DIR} with project ${PROJNAME} in ${TESTDIR} ($(pwd))" >&3
   ddev get ${DIR}
   ddev restart
-  # Do something here to verify functioning extra service
-  # For extra credit, use a real CMS with actual config.
-  # ddev exec "curl -s elasticsearch:9200" | grep "${PROJNAME}-elasticsearch"
+  [ "$(ddev exec -s db 'echo ${DDEV_DATABASE}')" = "mysql:8.0" ]
+  [ "$(ddev exec 'echo ${DDEV_PHP_VERSION}')" = "8.0" ]
+  docker inspect ddev-${PROJNAME}-redis >/dev/null
 }
 
-@test "install from release" {
-  set -eu -o pipefail
-  cd ${TESTDIR} || ( printf "unable to cd to ${TESTDIR}\n" && exit 1 )
-  echo "# ddev get drud/ddev-addon-template with project ${PROJNAME} in ${TESTDIR} ($(pwd))" >&3
-  ddev get drud/ddev-addon-template
-  ddev restart
-  # ddev exec "curl -s elasticsearch:9200" | grep "${PROJNAME}-elasticsearch"
-}
+# Can't do release yet
+#@test "install from release" {
+#  set -eu -o pipefail
+#  cd ${TESTDIR} || ( printf "unable to cd to ${TESTDIR}\n" && exit 1 )
+#  echo "# ddev get drud/ddev-platformsh with project ${PROJNAME} in ${TESTDIR} ($(pwd))" >&3
+#  ddev get drud/ddev-addon-template
+#  ddev restart
+#}

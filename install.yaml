@@ -18,7 +18,9 @@ pre_install_actions:
     #ddev-nodisplay
     if !( {{ contains "PLATFORMSH_CLI_TOKEN" (list .DdevGlobalConfig.web_environment | toString) }} || {{ contains "PLATFORMSH_CLI_TOKEN" (list .DdevProjectConfig.web_environment | toString) }} ); then
       read token
-      echo "token read"
+      # Put the token in to the project web environment
+      ddev config --web-environment-add PLATFORMSH_CLI_TOKEN=${token}
+      echo "PLATFORMSH_CLI_TOKEN set for project"
     fi
     
     # We don't want to allow new config if they're changing database types from what is currently there.
@@ -67,7 +69,6 @@ pre_install_actions:
 
 
 project_files:
-  - docker-compose.platformsh.yaml
   - web-build/Dockerfile.platformsh
 
 global_files:

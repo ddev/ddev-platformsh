@@ -34,7 +34,7 @@ pre_install_actions:
           echo "something went wrong, current_db_version is empty" && false
         fi
         {{ $dbheader := index (split ":" .platformapp.relationships.database) "_0" }} 
-        {{ $dbtype := get (get .services $dbheader) "type" }}
+        {{ $dbtype := replace "postgresql" "postgres" (get (get .services $dbheader) "type") }}
         # echo "dbheader={{$dbheader}} dbtype={{$dbtype}} "
         export upstream_db="{{ regexReplaceAll "oracle-" (regexReplaceAll ":.*$" $dbtype "") "" }}:{{ regexReplaceAll "^.*:" $dbtype "" }}"
         echo "Current db is ${current_db_version/_/:} (${current_db_version})"
@@ -54,7 +54,7 @@ pre_install_actions:
       # #ddev-generated
       # Generated configuration based on platform.sh project configuration
       {{ $dbheader := index (split ":" .platformapp.relationships.database) "_0" }} 
-      {{ $dbtype := get (get .services $dbheader) "type" }}
+      {{ $dbtype := replace "postgresql" "postgres" (get (get .services $dbheader) "type") }}
     
       php_version: {{ trimPrefix "php:" .platformapp.type }}
       database:

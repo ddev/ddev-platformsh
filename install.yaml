@@ -33,7 +33,10 @@ pre_install_actions:
         if [ -z "${current_db_version}" ]; then
           echo "something went wrong, current_db_version is empty" && false
         fi
-        export upstream_db="{{ regexReplaceAll "oracle-" (regexReplaceAll ":.*$" .services.dbmysql.type "") "" }}:{{ regexReplaceAll "^.*:" .services.dbmysql.type "" }}"
+        {{ $dbheader := index (split ":" .platformapp.relationships.database) "_0" }} 
+        {{ $dbtype := get (get .services $dbheader) "type" }}
+        # echo "dbheader={{$dbheader}} dbtype={{$dbtype}} "
+        export upstream_db="{{ regexReplaceAll "oracle-" (regexReplaceAll ":.*$" $dbtype "") "" }}:{{ regexReplaceAll "^.*:" $dbtype "" }}"
         echo "Current db is ${current_db_version/_/:} (${current_db_version})"
         echo "New db is ${upstream_db}"
         if [ "${current_db_version/_/:}" != "${upstream_db}" ]; then
@@ -50,10 +53,13 @@ pre_install_actions:
       cat <<EOF >.ddev/config.platformsh.yaml
       # #ddev-generated
       # Generated configuration based on platform.sh project configuration
+      {{ $dbheader := index (split ":" .platformapp.relationships.database) "_0" }} 
+      {{ $dbtype := get (get .services $dbheader) "type" }}
+    
       php_version: {{ trimPrefix "php:" .platformapp.type }}
       database:
-        type: {{ regexReplaceAll "oracle-" (regexReplaceAll ":.*$" .services.dbmysql.type "") "" }}
-        version: {{ regexReplaceAll "^.*:" .services.dbmysql.type "" }}
+        type: {{ regexReplaceAll "oracle-" (regexReplaceAll ":.*$" $dbtype "") "" }}
+        version: {{ regexReplaceAll "^.*:" $dbtype "" }}
     
       docroot: {{ dig "web" "locations" "/" "root" "notfound" .platformapp }}
       {{ if eq .platformapp.build.flavor "composer" }}

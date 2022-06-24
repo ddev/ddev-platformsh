@@ -62,14 +62,14 @@ pre_install_actions:
         version: {{ regexReplaceAll "^.*:" $dbtype "" }}
     
       docroot: {{ dig "web" "locations" "/" "root" "notfound" .platformapp }}
-      {{ if eq .platformapp.build.flavor "composer" }}
       hooks:
         post-start:
+      {{ if eq .platformapp.build.flavor "composer" }}
         - composer: install
       {{ end }}
 
       {{ if .platformapp.hooks.deploy }}
-        - exec: {{ trimAll "\n" .platformapp.hooks.deploy | splitList "\n"  | join `&&` }}
+        - exec: '{{ trimAll "\n" .platformapp.hooks.deploy | replace "\n\n" "\n" | splitList "\n"  | join ` && ` }}'
       {{ end }}
       EOF
 

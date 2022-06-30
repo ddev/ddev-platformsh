@@ -52,14 +52,39 @@ pre_install_actions:
       #ddev-nodisplay
       platform_routes=$(cat <<-ENDROUTES
       {
-        "${DDEV_PRIMARY_URL}/": {
+        "https://main-bvxea6i-u2gvy3z2olb5s.us-3.platformsh.site/": {
           "primary": true,
           "id": null,
-          "production_url": "${DDEV_PRIMARY_URL}/",
+          "production_url": "https://main-bvxea6i-u2gvy3z2olb5s.us-3.platformsh.site/",
           "attributes": {},
           "type": "upstream",
-          "upstream": "app",
+          "upstream": "drupal",
           "original_url": "https://{default}/"
+        },
+        "https://www.main-bvxea6i-u2gvy3z2olb5s.us-3.platformsh.site/": {
+          "primary": false,
+          "id": null,
+          "production_url": "https://www.main-bvxea6i-u2gvy3z2olb5s.us-3.platformsh.site/",
+          "attributes": {},
+          "type": "redirect",
+          "to": "https://main-bvxea6i-u2gvy3z2olb5s.us-3.platformsh.site/",
+          "original_url": "https://www.{default}/"
+        },
+        "http://main-bvxea6i-u2gvy3z2olb5s.us-3.platformsh.site/": {
+          "original_url": "http://{default}/",
+          "id": null,
+          "primary": false,
+          "type": "redirect",
+          "to": "https://main-bvxea6i-u2gvy3z2olb5s.us-3.platformsh.site/",
+          "production_url": "http://main-bvxea6i-u2gvy3z2olb5s.us-3.platformsh.site/"
+        },
+        "http://www.main-bvxea6i-u2gvy3z2olb5s.us-3.platformsh.site/": {
+          "original_url": "http://www.{default}/",
+          "id": null,
+          "primary": false,
+          "type": "redirect",
+          "to": "https://www.main-bvxea6i-u2gvy3z2olb5s.us-3.platformsh.site/",
+          "production_url": "http://www.main-bvxea6i-u2gvy3z2olb5s.us-3.platformsh.site/"
         }
       }
       ENDROUTES
@@ -86,6 +111,7 @@ pre_install_actions:
       {{ if eq .platformapp.build.flavor "composer" }}
         - composer: install
       {{ end }}
+        - exec: 'mkdir -p .drush'
 
       {{ if .platformapp.hooks.deploy }}
         - exec: '{{ trimAll "\n" .platformapp.hooks.deploy | replace "\n\n" "\n" | splitList "\n"  | join ` && ` }}'

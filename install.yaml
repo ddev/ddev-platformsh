@@ -52,40 +52,16 @@ pre_install_actions:
       #ddev-nodisplay
       platform_routes=$(cat <<-ENDROUTES
       {
-        "https://main-bvxea6i-u2gvy3z2olb5s.us-3.platformsh.site/": {
+        "${DDEV_PRIMARY_URL}": {
           "primary": true,
           "id": null,
-          "production_url": "https://main-bvxea6i-u2gvy3z2olb5s.us-3.platformsh.site/",
+          "production_url": "${DDEV_PRIMARY_URL}",
           "attributes": {},
           "type": "upstream",
           "upstream": "drupal",
           "original_url": "https://{default}/"
-        },
-        "https://www.main-bvxea6i-u2gvy3z2olb5s.us-3.platformsh.site/": {
-          "primary": false,
-          "id": null,
-          "production_url": "https://www.main-bvxea6i-u2gvy3z2olb5s.us-3.platformsh.site/",
-          "attributes": {},
-          "type": "redirect",
-          "to": "https://main-bvxea6i-u2gvy3z2olb5s.us-3.platformsh.site/",
-          "original_url": "https://www.{default}/"
-        },
-        "http://main-bvxea6i-u2gvy3z2olb5s.us-3.platformsh.site/": {
-          "original_url": "http://{default}/",
-          "id": null,
-          "primary": false,
-          "type": "redirect",
-          "to": "https://main-bvxea6i-u2gvy3z2olb5s.us-3.platformsh.site/",
-          "production_url": "http://main-bvxea6i-u2gvy3z2olb5s.us-3.platformsh.site/"
-        },
-        "http://www.main-bvxea6i-u2gvy3z2olb5s.us-3.platformsh.site/": {
-          "original_url": "http://www.{default}/",
-          "id": null,
-          "primary": false,
-          "type": "redirect",
-          "to": "https://www.main-bvxea6i-u2gvy3z2olb5s.us-3.platformsh.site/",
-          "production_url": "http://www.main-bvxea6i-u2gvy3z2olb5s.us-3.platformsh.site/"
         }
+
       }
       ENDROUTES
       )

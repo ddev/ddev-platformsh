@@ -50,18 +50,37 @@ pre_install_actions:
     # Write a config.platformsh.yaml based on calculated values, php version, database, docroot
   - |
       #ddev-nodisplay
+      platform_routes=$(cat <<-ENDROUTES
+      {
+        "${DDEV_PRIMARY_URL}/": {
+          "primary": true,
+          "id": null,
+          "production_url": "${DDEV_PRIMARY_URL}/",
+          "attributes": {},
+          "type": "upstream",
+          "upstream": "app",
+          "original_url": "https://{default}/"
+        }
+      }
+      ENDROUTES
+      )
+      printf "platform_routes=$platform_routes\n"
+      set -x
       cat <<EOF >.ddev/config.platformsh.yaml
       # #ddev-generated
       # Generated configuration based on platform.sh project configuration
       {{ $dbheader := index (split ":" .platformapp.relationships.database) "_0" }} 
       {{ $dbtype := replace "postgresql" "postgres" (get (get .services $dbheader) "type") }}
-    
       php_version: {{ trimPrefix "php:" .platformapp.type }}
       database:
         type: {{ regexReplaceAll "oracle-" (regexReplaceAll ":.*$" $dbtype "") "" }}
         version: {{ regexReplaceAll "^.*:" $dbtype "" }}
-    
+
       docroot: {{ dig "web" "locations" "/" "root" "notfound" .platformapp }}
+      web_environment:
+      - PLATFORM_APPLICATION_NAME={{ .platformapp.name }}
+      - PLATFORM_ENVIRONMENT=main 
+      - PLATFORM_ROUTES=$(echo -n ${platform_routes} | base64)
       hooks:
         post-start:
       {{ if eq .platformapp.build.flavor "composer" }}

@@ -67,7 +67,7 @@ pre_install_actions:
       )
       printf "platform_routes=$platform_routes\n"
       set -x
-      cat <<EOF >.ddev/config.platformsh.yaml
+      cat <<-EOF >.ddev/config.platformsh.yaml
       # #ddev-generated
       # Generated configuration based on platform.sh project configuration
       {{ $dbheader := index (split ":" .platformapp.relationships.database) "_0" }} 
@@ -79,18 +79,26 @@ pre_install_actions:
 
       docroot: {{ dig "web" "locations" "/" "root" "notfound" .platformapp }}
       web_environment:
+      - PLATFORM_APP_DIR=/var/www/html
       - PLATFORM_APPLICATION_NAME={{ .platformapp.name }}
       - PLATFORM_ENVIRONMENT=main 
+      - PLATFORM_PROJECT=99
       - PLATFORM_ROUTES=$(echo -n ${platform_routes} | base64)
+      - PLATFORM_VARIABLES=e30=
+      - USER=$(id -u -n)
       hooks:
         post-start:
       {{ if eq .platformapp.build.flavor "composer" }}
         - composer: install
       {{ end }}
         - exec: 'mkdir -p .drush'
+    
+      {{ if .platformapp.hooks.build }}
+        - exec: 'export PATH=${PATH}:.global/bin && {{ trimAll "\n" .platformapp.hooks.build | replace "\n\n" "\n" | splitList "\n"  | join ` && ` }}'
+      {{ end }}
 
       {{ if .platformapp.hooks.deploy }}
-        - exec: '{{ trimAll "\n" .platformapp.hooks.deploy | replace "\n\n" "\n" | splitList "\n"  | join ` && ` }}'
+        - exec: 'export PATH=${PATH}:.global/bin && {{ trimAll "\n" .platformapp.hooks.deploy | replace "\n\n" "\n" | splitList "\n"  | join ` && ` }}'
       {{ end }}
       EOF
 

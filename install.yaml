@@ -66,7 +66,7 @@ pre_install_actions:
       ENDROUTES
       )
       printf "platform_routes=$platform_routes\n"
-      set -x
+      # set -x
       cat <<-EOF >.ddev/config.platformsh.yaml
       # #ddev-generated
       # Generated configuration based on platform.sh project configuration
@@ -83,7 +83,8 @@ pre_install_actions:
       - PLATFORM_APPLICATION_NAME={{ .platformapp.name }}
       - PLATFORM_ENVIRONMENT=main 
       - PLATFORM_PROJECT=99
-      - PLATFORM_ROUTES=$(echo -n ${platform_routes} | base64)
+      # Unfortunately base64 behaves differently on linux than on macOS. Linux is coreutils version.
+      - PLATFORM_ROUTES='$( if base64 --version >/dev/null 2>&1; then echo -n ${platform_routes} | base64 -w0; else echo -n ${platform_routes} | base64; fi)'
       - PLATFORM_VARIABLES=e30=
       - USER=$(id -u -n)
       hooks:
@@ -91,14 +92,17 @@ pre_install_actions:
       {{ if eq .platformapp.build.flavor "composer" }}
         - composer: install
       {{ end }}
+    
+        # Hacks to avoid failures in assumptions of scripts
         - exec: 'mkdir -p .drush'
+        - exec: rm -rf tmp/cache
     
       {{ if .platformapp.hooks.build }}
-        - exec: 'export PATH=${PATH}:.global/bin && {{ trimAll "\n" .platformapp.hooks.build | replace "\n\n" "\n" | splitList "\n"  | join ` && ` }}'
+        - exec: 'export PATH="${PATH}:.global/bin" && {{ trimAll "\n" .platformapp.hooks.build | replace "\n\n" "\n" | splitList "\n"  | join ` && ` }}'
       {{ end }}
 
       {{ if .platformapp.hooks.deploy }}
-        - exec: 'export PATH=${PATH}:.global/bin && {{ trimAll "\n" .platformapp.hooks.deploy | replace "\n\n" "\n" | splitList "\n"  | join ` && ` }}'
+        - exec: 'export PATH="${PATH}:.global/bin" && {{ trimAll "\n" .platformapp.hooks.deploy | replace "\n\n" "\n" | splitList "\n"  | join ` && ` }}'
       {{ end }}
       EOF
 

@@ -28,7 +28,7 @@ pre_install_actions:
       #ddev-nodisplay
       #todo: This simplistic approach doesn't work for postgres; volume name is different
       #and the database type file is different too
-      if docker volume ls | grep ${DDEV_PROJECT}-mariadb; then
+      if docker volume ls | grep ${DDEV_PROJECT}-mariadb && docker run --rm -w /db -v ${DDEV_PROJECT}-mariadb:/db busybox cat db_mariadb_version.txt; then
         export current_db_version="$(docker run --rm -w /db -v ${DDEV_PROJECT}-mariadb:/db busybox cat db_mariadb_version.txt)"
         if [ -z "${current_db_version}" ]; then
           echo "something went wrong, current_db_version is empty" && false
@@ -50,22 +50,6 @@ pre_install_actions:
     # Write a config.platformsh.yaml based on calculated values, php version, database, docroot
   - |
       #ddev-nodisplay
-      platform_routes=$(cat <<-ENDROUTES
-      {
-        "${DDEV_PRIMARY_URL}": {
-          "primary": true,
-          "id": null,
-          "production_url": "${DDEV_PRIMARY_URL}",
-          "attributes": {},
-          "type": "upstream",
-          "upstream": "drupal",
-          "original_url": "https://{default}/"
-        }
-
-      }
-      ENDROUTES
-      )
-      printf "platform_routes=$platform_routes\n"
       # set -x
       cat <<-EOF >.ddev/config.platformsh.yaml
       # #ddev-generated
@@ -78,18 +62,6 @@ pre_install_actions:
         version: {{ regexReplaceAll "^.*:" $dbtype "" }}
 
       docroot: {{ dig "web" "locations" "/" "root" "notfound" .platformapp }}
-      web_environment:
-      - PLATFORM_APP_DIR=/var/www/html
-      - PLATFORM_APPLICATION_NAME={{ .platformapp.name }}
-      - PLATFORM_ENVIRONMENT=main 
-      - PLATFORM_PROJECT=99
-      # Unfortunately base64 behaves differently on linux than on macOS. Linux is coreutils version.
-      # TODO: Use something better than base64 util for this task
-      - PLATFORM_ROUTES='$( if base64 --version >/dev/null 2>&1; then echo -n ${platform_routes} | base64 -w0; else echo -n ${platform_routes} | base64; fi)'
-      # TODO: Use real PLATFORM_VARIABLES?
-      - PLATFORM_VARIABLES=e30=
-      # TODO: Consider populating $USER in web container by default
-      - USER=$(id -u -n)
       hooks:
         post-start:
       {{ if eq .platformapp.build.flavor "composer" }}

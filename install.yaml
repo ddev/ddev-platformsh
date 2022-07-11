@@ -62,6 +62,8 @@ pre_install_actions:
         version: {{ regexReplaceAll "^.*:" $dbtype "" }}
 
       docroot: {{ dig "web" "locations" "/" "root" "notfound" .platformapp }}
+      web_environment:
+      - PLATFORM_APPLICATION_NAME={{ .platformapp.name }}
       hooks:
         post-start:
       {{ if eq .platformapp.build.flavor "composer" }}

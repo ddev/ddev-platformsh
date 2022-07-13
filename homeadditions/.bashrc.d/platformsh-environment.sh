@@ -11,10 +11,6 @@ export PLATFORM_DIR=${PLATFORM_APP_DIR}
 # PLATFORM_ENVIRONMENT is most often the branch name
 export PLATFORM_ENVIRONMENT=main
 
-# PLATFORM_PROJECT should be the real upstream project
-#export PLATFORM_PROJECT=$(platform project:info id)
-export PLATFORM_PROJECT=${DDEV_PROJECT}
-
 platform_routes=$(cat <<-ENDROUTES
 {
   "${DDEV_PRIMARY_URL}": {

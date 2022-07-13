@@ -22,7 +22,27 @@ pre_install_actions:
       ddev config --web-environment-add PLATFORMSH_CLI_TOKEN=${token}
       echo "PLATFORMSH_CLI_TOKEN set for project"
     fi
-    
+
+  - |
+    #ddev-nodisplay
+    echo 'list ddevprojectconfig.web_environment={{ list .DdevProjectConfig.web_environment | toString }}'
+    echo 'ddevprojectconfig.web_environment={{ .DdevProjectConfig.web_environment }}'
+    if ({{ contains "PLATFORM_PROJECT=" (list .DdevProjectConfig.web_environment | toString) }} ); then
+      echo "Using existing PLATFORM_PROJECT from project config.yaml."
+    else
+      printf "Please enter your platform.sh project ID (like '6k4ypl5iendqd'): "
+    fi
+
+  - |
+    #ddev-nodisplay
+    if !( {{ contains "PLATFORM_PROJECT" (list .DdevProjectConfig.web_environment | toString) }} ); then
+      read platform_project
+      echo "platform_project = '${platform_project}'"
+      # Put the platform_project in to the project's web environment
+      ddev config --web-environment-add PLATFORM_PROJECT=${platform_project}
+      echo "PLATFORM_PROJECT set to ${platform_project}"
+    fi
+
     # We don't want to allow new config if they're changing database types from what is currently there.
   - |
       #ddev-nodisplay

@@ -6,10 +6,7 @@ export PLATFORM_TREE_ID=2dc356f2fea13ef683f9adc5fc5bd28e05ad992a
 export PLATFORM_PROJECT_ENTROPY="$(echo $RANDOM | shasum -a 256 | awk '{print $1}')"
 export PLATFORM_APP_DIR=/var/www/html
 export PLATFORM_DIR=${PLATFORM_APP_DIR}
-# PLATFORM_APPLICATION_NAME should be the actual upstream name, like "drupal"
-#export PLATFORM_ENVIRONMENT=$(platform project:info default_branch)
-# PLATFORM_ENVIRONMENT is most often the branch name
-export PLATFORM_ENVIRONMENT=main
+export PLATFORM_BRANCH=${PLATFORM_ENVIRONMENT}
 
 platform_routes=$(cat <<-ENDROUTES
 {

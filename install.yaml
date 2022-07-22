@@ -100,6 +100,7 @@ pre_install_actions:
     # Write a config.platformsh.yaml based on calculated values, php version, database, docroot
   - |
       #ddev-nodisplay
+      for m in {{ list .platformapp.mounts }}
       # set -x
       cat <<-EOF >.ddev/config.platformsh.yaml
       # #ddev-generated
@@ -134,7 +135,13 @@ pre_install_actions:
         # platformsh deploy hooks
         - exec: '{{ trimAll "\n" .platformapp.hooks.deploy | replace "\n\n" "\n" | splitList "\n"  | join ` && ` }}'
       {{ end }}
-      EOF
+    
+      {{ if .platformapp.hooks.post_deploy }}
+        # platformsh post-deploy hooks
+        - exec: '{{ trimAll "\n" .platformapp.hooks.post_deploy | replace "\n\n" "\n" | splitList "\n"  | join ` && ` }}'
+      {{ end }}
+    
+    EOF
 
 
 project_files:

@@ -4,7 +4,7 @@ pre_install_actions:
     # Make sure we have a ddev version that can support what we do here
   - |
     #ddev-nodisplay
-    (ddev debug capabilities | grep ddev-get-yaml-interpolation >/dev/null) || (echo "Please upgrade ddev to v1.19.4+ to support yaml interpolation" && false)
+    (ddev debug capabilities | grep config-star-yaml-merging >/dev/null) || (echo "Please upgrade ddev to v1.20.0+ to support yaml interpolation" && false)
 
   # Get PLATFORMSH_CLI_TOKEN from user if we don't have it yet
   - |

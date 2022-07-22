@@ -6,6 +6,7 @@ pre_install_actions:
     #ddev-nodisplay
     (ddev debug capabilities | grep ddev-get-yaml-interpolation >/dev/null) || (echo "Please upgrade ddev to v1.19.4+ to support yaml interpolation" && false)
 
+  # Get PLATFORMSH_CLI_TOKEN from user if we don't have it yet
   - |
     #ddev-nodisplay
     if ( {{ contains "PLATFORMSH_CLI_TOKEN" (list .DdevGlobalConfig.web_environment | toString) }} || {{ contains "PLATFORMSH_CLI_TOKEN" (list .DdevProjectConfig.web_environment | toString) }} ); then
@@ -22,13 +23,62 @@ pre_install_actions:
       ddev config --web-environment-add PLATFORMSH_CLI_TOKEN=${token}
       echo "PLATFORMSH_CLI_TOKEN set for project"
     fi
+
+  # Get PLATFORM_PROJECT from user if we don't have it yet
+  - |
+    #ddev-nodisplay
+    echo 'list ddevprojectconfig.web_environment={{ list .DdevProjectConfig.web_environment | toString }}'
+    if ({{ contains "PLATFORM_PROJECT=" (list .DdevProjectConfig.web_environment | toString) }} ); then
+      echo "Using existing PLATFORM_PROJECT from project config.yaml."
+    else
+      printf "Please enter your platform.sh project ID (like '6k4ypl5iendqd'): "
+    fi
+
+  - |
+    #ddev-nodisplay
+    if !( {{ contains "PLATFORM_PROJECT" (list .DdevProjectConfig.web_environment | toString) }} ); then
+      read platform_project
+      echo "platform_project = '${platform_project}'"
+      # Put the platform_project in to the project's web environment
+      ddev config --web-environment-add PLATFORM_PROJECT=${platform_project}
+      echo "PLATFORM_PROJECT set to ${platform_project}"
+    fi
+    
+    # Add PLATFORM_APPLICATION_NAME from .platformapp.name
+    # This should be moved elsewhere after config.yaml environment variables can be merged
+    # see ddev v1.20.0
+  - |
+    #ddev-nodisplay
+    if !( {{ contains "PLATFORM_APPLICATION_NAME" (list .DdevProjectConfig.web_environment | toString) }} ); then
+      # Put the platform_project in to the project's web environment
+      ddev config --web-environment-add PLATFORM_APPLICATION_NAME={{ .platformapp.name }}
+    fi
+
+  # Get PLATFORM_ENVIRONMENT from user if we don't have it
+  - |
+    #ddev-nodisplay
+    echo 'list ddevprojectconfig.web_environment={{ list .DdevProjectConfig.web_environment | toString }}'
+    if ({{ contains "PLATFORM_ENVIRONMENT=" (list .DdevProjectConfig.web_environment | toString) }} ); then
+      echo "Using existing PLATFORM_ENVIRONMENT from project config.yaml."
+    else
+      printf "Please enter your platform.sh project environment (like 'main'): "
+    fi
+
+  - |
+    #ddev-nodisplay
+    if !( {{ contains "PLATFORM_ENVIRONMENT" (list .DdevProjectConfig.web_environment | toString) }} ); then
+      read PLATFORM_ENVIRONMENT
+      # Put the PLATFORM_ENVIRONMENT in to the project's web environment
+      ddev config --web-environment-add PLATFORM_ENVIRONMENT=${PLATFORM_ENVIRONMENT}
+      echo "PLATFORM_ENVIRONMENT set to ${PLATFORM_ENVIRONMENT}"
+    fi
     
     # We don't want to allow new config if they're changing database types from what is currently there.
   - |
       #ddev-nodisplay
       #todo: This simplistic approach doesn't work for postgres; volume name is different
       #and the database type file is different too
-      if docker volume ls | grep ${DDEV_PROJECT}-mariadb; then
+      if docker volume ls | grep ${DDEV_PROJECT}-mariadb && docker run --rm -w /db -v ${DDEV_PROJECT}-mariadb:/db busybox cat db_mariadb_version.txt; then
         export current_db_version="$(docker run --rm -w /db -v ${DDEV_PROJECT}-mariadb:/db busybox cat db_mariadb_version.txt)"
         if [ -z "${current_db_version}" ]; then
           echo "something went wrong, current_db_version is empty" && false
@@ -50,25 +100,38 @@ pre_install_actions:
     # Write a config.platformsh.yaml based on calculated values, php version, database, docroot
   - |
       #ddev-nodisplay
-      cat <<EOF >.ddev/config.platformsh.yaml
+      # set -x
+      cat <<-EOF >.ddev/config.platformsh.yaml
       # #ddev-generated
       # Generated configuration based on platform.sh project configuration
       {{ $dbheader := index (split ":" .platformapp.relationships.database) "_0" }} 
       {{ $dbtype := replace "postgresql" "postgres" (get (get .services $dbheader) "type") }}
-    
       php_version: {{ trimPrefix "php:" .platformapp.type }}
       database:
         type: {{ regexReplaceAll "oracle-" (regexReplaceAll ":.*$" $dbtype "") "" }}
         version: {{ regexReplaceAll "^.*:" $dbtype "" }}
-    
+
       docroot: {{ dig "web" "locations" "/" "root" "notfound" .platformapp }}
       hooks:
         post-start:
       {{ if eq .platformapp.build.flavor "composer" }}
         - composer: install
       {{ end }}
+    
+        # Hacks to avoid failures in assumptions of scripts
+        # TODO: Explore these to see how we can get rid of them
+        - exec: 'mkdir -p .drush'
+        - exec: rm -rf tmp/cache
+    
+      # TODO: Separate the hooks into separate exec lines
+      {{ if .platformapp.hooks.build }}
+        # platformsh build hooks
+        - exec: '{{ trimAll "\n" .platformapp.hooks.build | replace "\n\n" "\n" | splitList "\n"  | join ` && ` }}'
+      {{ end }}
 
+      # TODO: Separate the hooks into separate exec lines
       {{ if .platformapp.hooks.deploy }}
+        # platformsh deploy hooks
         - exec: '{{ trimAll "\n" .platformapp.hooks.deploy | replace "\n\n" "\n" | splitList "\n"  | join ` && ` }}'
       {{ end }}
       EOF
@@ -76,6 +139,7 @@ pre_install_actions:
 
 project_files:
   - web-build/Dockerfile.platformsh
+  - homeadditions/.bashrc.d/platformsh-environment.sh
 
 global_files:
   - commands/web/platform

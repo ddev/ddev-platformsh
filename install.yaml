@@ -100,7 +100,6 @@ pre_install_actions:
     # Write a config.platformsh.yaml based on calculated values, php version, database, docroot
   - |
       #ddev-nodisplay
-      for m in {{ list .platformapp.mounts }}
       # set -x
       cat <<-EOF >.ddev/config.platformsh.yaml
       # #ddev-generated
@@ -111,18 +110,14 @@ pre_install_actions:
       database:
         type: {{ regexReplaceAll "oracle-" (regexReplaceAll ":.*$" $dbtype "") "" }}
         version: {{ regexReplaceAll "^.*:" $dbtype "" }}
-
       docroot: {{ dig "web" "locations" "/" "root" "notfound" .platformapp }}
+      web_environment:
+      - "PLATFORM_MOUNTS={{ range $key, $value := .platformapp.mounts }}{{ $key }} {{ end }}"
       hooks:
         post-start:
       {{ if eq .platformapp.build.flavor "composer" }}
         - composer: install
       {{ end }}
-    
-        # Hacks to avoid failures in assumptions of scripts
-        # TODO: Explore these to see how we can get rid of them
-        - exec: 'mkdir -p .drush'
-        - exec: rm -rf tmp/cache
     
       # TODO: Separate the hooks into separate exec lines
       {{ if .platformapp.hooks.build }}
@@ -135,18 +130,18 @@ pre_install_actions:
         # platformsh deploy hooks
         - exec: '{{ trimAll "\n" .platformapp.hooks.deploy | replace "\n\n" "\n" | splitList "\n"  | join ` && ` }}'
       {{ end }}
-    
+
       {{ if .platformapp.hooks.post_deploy }}
-        # platformsh post-deploy hooks
+        # platformsh post_deploy hooks
         - exec: '{{ trimAll "\n" .platformapp.hooks.post_deploy | replace "\n\n" "\n" | splitList "\n"  | join ` && ` }}'
       {{ end }}
-    
-    EOF
 
+      EOF
 
 project_files:
   - web-build/Dockerfile.platformsh
   - homeadditions/.bashrc.d/platformsh-environment.sh
+  - providers/platform.yaml
 
 global_files:
   - commands/web/platform

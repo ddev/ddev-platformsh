@@ -1,0 +1,42 @@
+#ddev-generated
+
+auth_command:
+  command: |
+    set -eu -o pipefail
+    if [ -z "${PLATFORMSH_CLI_TOKEN:-}" ]; then echo "Please make sure you have set PLATFORMSH_CLI_TOKEN in ~/.ddev/global_config.yaml" && exit 1; fi
+
+db_pull_command:
+  command: |
+    #set -x   # You can enable bash debugging output by uncommenting
+    set -eu -o pipefail
+    ls /var/www/html/.ddev >/dev/null # This just refreshes stale NFS if possible
+    platform db:dump --yes --gzip --file=/var/www/html/.ddev/.downloads/db.sql.gz --project="${PLATFORM_PROJECT}" --environment="${PLATFORM_ENVIRONMENT}"
+
+files_pull_command:
+  command: |
+    set -x   # You can enable bash debugging output by uncommenting
+    set -eu -o pipefail
+    # Use $PLATFORM_MOUNTS if it exists to get list of mounts to download, otherwise just web/sites/default/files (drupal)
+    declare -a mounts=(${PLATFORM_MOUNTS:-/web/sites/default/files})
+    pwd
+    for m in ${mounts[@]}; do
+      platform mount:download --yes --quiet --project="${PLATFORM_PROJECT}" --environment="${PLATFORM_ENVIRONMENT}" --mount=${m} --target=/var/www/html${m}
+    done
+
+
+# push is a dangerous command. If not absolutely needed it's better to delete these lines.
+db_push_command:
+  command: |
+    # set -x   # You can enable bash debugging output by uncommenting
+    set -eu -o pipefail
+    ls /var/www/html/.ddev >/dev/null # This just refreshes stale NFS if possible
+    pushd /var/www/html/.ddev/.downloads >/dev/null;
+    gzip -dc db.sql.gz | platform db:sql --project="${PLATFORM_PROJECT}" --environment="${PLATFORM_ENVIRONMENT}"
+
+# push is a dangerous command. If not absolutely needed it's better to delete these lines.
+files_push_command:
+  command: |
+    # set -x   # You can enable bash debugging output by uncommenting
+    set -eu -o pipefail
+    ls "${DDEV_FILES_DIR}" >/dev/null # This just refreshes stale NFS if possible
+    platform mount:upload --yes --quiet --project="${PLATFORM_PROJECT}" --environment="${PLATFORM_ENVIRONMENT}" --source="${DDEV_FILES_DIR}" --mount=web/sites/default/files

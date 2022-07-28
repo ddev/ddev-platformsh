@@ -12,9 +12,9 @@ db_pull_command:
     ls /var/www/html/.ddev >/dev/null # This just refreshes stale NFS if possible
     platform db:dump --yes --gzip --file=/var/www/html/.ddev/.downloads/db.sql.gz --project="${PLATFORM_PROJECT}" --environment="${PLATFORM_ENVIRONMENT}"
 
-files_pull_command:
+files_import_command:
   command: |
-    set -x   # You can enable bash debugging output by uncommenting
+    #set -x   # You can enable bash debugging output by uncommenting
     set -eu -o pipefail
     # Use $PLATFORM_MOUNTS if it exists to get list of mounts to download, otherwise just web/sites/default/files (drupal)
     declare -a mounts=(${PLATFORM_MOUNTS:-/web/sites/default/files})

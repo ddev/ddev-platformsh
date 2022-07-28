@@ -70,7 +70,6 @@ pre_install_actions:
       read PLATFORM_ENVIRONMENT
       # Put the PLATFORM_ENVIRONMENT in to the project's web environment
       ddev config --web-environment-add PLATFORM_ENVIRONMENT=${PLATFORM_ENVIRONMENT}
-      echo "PLATFORM_ENVIRONMENT set to ${PLATFORM_ENVIRONMENT}"
     fi
     
     # We don't want to allow new config if they're changing database types from what is currently there.
@@ -101,6 +100,20 @@ pre_install_actions:
   - |
       #ddev-nodisplay
       # set -x
+      platform_routes=$(cat <<-ENDROUTES
+      {
+      "${DDEV_PRIMARY_URL}": {
+        "primary": true,
+        "id": null,
+        "production_url": "${DDEV_PRIMARY_URL}",
+        "attributes": {},
+        "upstream": "drupal",
+        "type": "upstream",
+        "original_url": "https://{default}/"  }
+      }
+      ENDROUTES
+      )
+  
       cat <<-EOF >.ddev/config.platformsh.yaml
       # #ddev-generated
       # Generated configuration based on platform.sh project configuration
@@ -112,13 +125,26 @@ pre_install_actions:
         version: {{ regexReplaceAll "^.*:" $dbtype "" }}
       docroot: {{ dig "web" "locations" "/" "root" "notfound" .platformapp }}
       web_environment:
+      # TODO: Review which of these matters and which can be dummied up
       - "PLATFORM_MOUNTS={{ range $key, $value := .platformapp.mounts }}{{ $key }} {{ end }}"
+      - "PLATFORM_APP_DIR=/var/www/html"
+      - PLATFORM_PROJECT_ENTROPY=$(echo $RANDOM | shasum -a 256 | awk '{print $1}')
+      # Consider commit hash for PLATFORM_TREE_ID
+      - "PLATFORM_TREE_ID=2dc356f2fea13ef683f9adc5fc5bd28e05ad992a"
+      - "PLATFORM_DIR=/var/www/html"
+      - "PLATFORM_ROUTES=$( if base64 --version >/dev/null 2>&1; then echo -n ${platform_routes} | base64 -w0; else echo -n ${platform_routes} | base64; fi)"
+      - PLATFORM_VARIABLES=e30=
+      # TODO: Consider populating $USER in web container by default
+      - USER=$(id -u -n)
+      - PATH=$PATH:/var/www/html/.global/bin
+
+
       hooks:
         post-start:
       {{ if eq .platformapp.build.flavor "composer" }}
         - composer: install
       {{ end }}
-    
+
       # TODO: Separate the hooks into separate exec lines
       {{ if .platformapp.hooks.build }}
         # platformsh build hooks

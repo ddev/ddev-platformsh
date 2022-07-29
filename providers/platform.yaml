@@ -18,9 +18,7 @@ files_import_command:
     set -eu -o pipefail
     # Use $PLATFORM_MOUNTS if it exists to get list of mounts to download, otherwise just web/sites/default/files (drupal)
     declare -a mounts=(${PLATFORM_MOUNTS:-/web/sites/default/files})
-    for m in ${mounts[@]}; do
-      platform mount:download --yes --quiet --project="${PLATFORM_PROJECT}" --environment="${PLATFORM_ENVIRONMENT}" --mount=${m} --target=/var/www/html${m}
-    done
+    platform mount:download --all --yes --quiet --project="${PLATFORM_PROJECT}" --environment="${PLATFORM_ENVIRONMENT}"  --target=/var/www/html
 
 
 # push is a dangerous command. If not absolutely needed it's better to delete these lines.

@@ -27,6 +27,6 @@ This repository is used with `ddev get platformsh/ddev-platformsh` to get a rich
 - [x] Automatically configure the .ddev/providers/platform so you can immediately do a `ddev pull platform` with no configuration effort.
 - [ ] Let us know what's important to you!
 
-**Contributed and maintained by [@rfay](https://github.com/rfay) and [@lolautruche](https://github.com/lolatruche)**
+**Contributed and maintained by [@rfay](https://github.com/rfay) and @lolautruche](https://github.com/lolautruche)**
 
 

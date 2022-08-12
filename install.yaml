@@ -119,7 +119,8 @@ pre_install_actions:
       # Generated configuration based on platform.sh project configuration
       {{ $dbheader := index (split ":" .platformapp.relationships.database) "_0" }} 
       {{ $dbtype := replace "postgresql" "postgres" (get (get .services $dbheader) "type") }}
-      php_version: {{ trimPrefix "php:" .platformapp.type }}
+      {{ $phpversion := trimPrefix "php:" .platformapp.type }}
+      php_version: {{ $phpversion }}
       database:
         type: {{ regexReplaceAll "oracle-" (regexReplaceAll ":.*$" $dbtype "") "" }}
         version: {{ regexReplaceAll "^.*:" $dbtype "" }}
@@ -135,7 +136,10 @@ pre_install_actions:
       - "PLATFORM_ROUTES=$( if base64 --version >/dev/null 2>&1; then echo -n ${platform_routes} | base64 -w0; else echo -n ${platform_routes} | base64; fi)"
       - PLATFORM_VARIABLES=e30=
       - PATH=$PATH:/var/www/html/.global/bin
-
+    
+      # Provide all extensions but blackfire, which has different pattern (blackfire-php) and is already installed
+      webimage_extra_packages:{{range $extension := .platformapp.runtime.extensions}}{{if ne $extension "blackfire"}}
+      - php-{{$extension}}{{end}}{{end}}
 
       hooks:
         post-start:

@@ -151,13 +151,11 @@ pre_install_actions:
         - composer: install
       {{ end }}
 
-      # TODO: Separate the hooks into separate exec lines
       {{ if .platformapp.hooks.build }}
         # platformsh build hooks
         - exec: '{{ trimAll "\n" .platformapp.hooks.build | replace "\n\n" "\n" | splitList "\n"  | join ` && ` }}'
       {{ end }}
 
-      # TODO: Separate the hooks into separate exec lines
       {{ if .platformapp.hooks.deploy }}
         # platformsh deploy hooks
         - exec: '{{ trimAll "\n" .platformapp.hooks.deploy | replace "\n\n" "\n" | splitList "\n"  | join ` && ` }}'

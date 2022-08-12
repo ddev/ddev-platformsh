@@ -140,6 +140,10 @@ pre_install_actions:
       # Provide all extensions but blackfire, which has different pattern (blackfire-php) and is already installed
       webimage_extra_packages:{{range $extension := .platformapp.runtime.extensions}}{{if ne $extension "blackfire"}}
       - php-{{$extension}}{{end}}{{end}}
+      # Add pip only if we have python3 dependencies
+      {{ if .platformapp.dependencies.python3 }}
+      - python3-pip
+      {{ end }}
 
       hooks:
         post-start:
@@ -182,6 +186,16 @@ post_install_actions:
   echo "Doing 'ddev get drud/ddev-redis'"
   ddev get drud/ddev-redis
   {{ end }}
+  
+  {{ if .platformapp.dependencies.python3 }}
+    cat <<-ENDDOCKERFILE >> web-build/Dockerfile.platformsh
+    {{ range $pkg, $version := .platformapp.dependencies.python3 }}
+    RUN pip3 install {{ $pkg }}{{ if ne $version "*" }}=={{ $version }}{{end}}
+    {{ end }}
+  ENDDOCKERFILE
+  {{ end }}
+  
+
 
 yaml_read_files:
   platformapp: .platform.app.yaml

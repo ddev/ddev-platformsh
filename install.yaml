@@ -185,13 +185,19 @@ post_install_actions:
   ddev get drud/ddev-redis
   {{ end }}
   
-  {{ if .platformapp.dependencies.python3 }}
-    cat <<-ENDDOCKERFILE >> web-build/Dockerfile.platformsh
-    {{ range $pkg, $version := .platformapp.dependencies.python3 }}
-    RUN pip3 install {{ $pkg }}{{ if ne $version "*" }}=={{ $version }}{{end}}
+  cat <<-ENDDOCKERFILE >> web-build/Dockerfile.platformsh
+  {{ if .platformapp.dependencies.php }}{{ range $pkg, $version := .platformapp.dependencies.php }}{{ if ne $pkg "composer/composer" }}
+  ENV COMPOSER_HOME=/usr/local/composer
+  RUN echo  "export PATH=\${PATH}:\${COMPOSER_HOME}/vendor/bin" >/etc/bashrc/composerpath.bashrc
+  RUN composer global require {{ $pkg }}{{ if ne $version "*" }}:{{ $version }}{{end}}{{end}}{{end}}
     {{ end }}
-  ENDDOCKERFILE
+
+  {{ if .platformapp.dependencies.python3 }}
+    {{ range $pkg, $version := .platformapp.dependencies.python3 }}
+  RUN pip3 install {{ $pkg }}{{ if ne $version "*" }}=={{ $version }}{{end}}
+    {{ end }}
   {{ end }}
+  ENDDOCKERFILE
   
 
 

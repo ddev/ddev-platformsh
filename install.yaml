@@ -135,9 +135,15 @@ pre_install_actions:
       - "PATH=$PATH:/var/www/html/.global/bin"
     
       # Provide all PHP extensions but blackfire, which has different pattern (blackfire-php) and is already installed
+      # and pdo_pgsql, which is already installed
       {{ $phpversion := trimPrefix "php:" .platformapp.type }}
-      webimage_extra_packages:{{range $extension := .platformapp.runtime.extensions}}{{if ne $extension "blackfire"}}
-      - php{{$phpversion}}-{{$extension}}{{end}}{{end}}
+      {{ $phpextensions := without .platformapp.runtime.extensions "blackfire" "pdo_pgsql" "sodium" }}
+      webimage_extra_packages:{{range $extension := $phpextensions }}
+      - php{{$phpversion}}-{{$extension}}{{end}}
+      {{ if has "sodium" .platformapp.runtime.extensions }}
+      - php-sodium
+      {{end}}
+    
       # Add pip only if we have python3 dependencies
       {{ if .platformapp.dependencies.python3 }}
       - python3-pip

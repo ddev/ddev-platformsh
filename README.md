@@ -7,7 +7,7 @@ This repository is used with `ddev get platformsh/ddev-platformsh` to get a rich
 ## Installing
 
 * If your local project has a different database type than the upstream (Platform.sh) database, it will conflict, so please back up your database with `ddev export-db` and `ddev delete -y` before starting the project with new config based on upstream.
-* This requires DDEV v1.20.0+.
+* This requires DDEV v1.21.1+.
 * `ddev get platformsh/ddev-platformsh` and `ddev restart`
 * Your experience is super-important: Please let us know about how it went for you in any of the [DDEV support venues](https://ddev.readthedocs.io/en/latest/#support-and-user-contributed-documentation)
 

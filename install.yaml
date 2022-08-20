@@ -4,7 +4,7 @@ pre_install_actions:
     # Make sure we have a ddev version that can support what we do here
   - |
     #ddev-nodisplay
-    (ddev debug capabilities | grep user-env-var >/dev/null) || (echo "Please upgrade ddev to v1.20.0+ for appropriate capabilities" && false)
+    (ddev debug capabilities | grep migrate-database >/dev/null) || (echo "Please upgrade ddev to v1.21.1+ for appropriate capabilities" && false)
 
   # Get PLATFORMSH_CLI_TOKEN from user if we don't have it yet
   - |
@@ -113,13 +113,19 @@ pre_install_actions:
       }
       ENDROUTES
       )
+      if [ -f .ddev/config.platformsh.yaml ] && ! grep '#ddev-generated' .ddev/config.platformsh.yaml; then
+        echo "Existing .ddev/config.platformsh.yaml does not have #ddev-generated, so can't be updated"
+        exit 2
+      fi
+      rm -f .ddev/config.platformsh.yaml
   
       cat <<-EOF >.ddev/config.platformsh.yaml
       # #ddev-generated
       # Generated configuration based on platform.sh project configuration
       {{ $dbheader := index (split ":" .platformapp.relationships.database) "_0" }} 
       {{ $dbtype := replace "postgresql" "postgres" (get (get .services $dbheader) "type") }}
-      php_version: {{ trimPrefix "php:" .platformapp.type }}
+      {{ $phpversion := trimPrefix "php:" .platformapp.type }}
+      php_version: {{ $phpversion }}
       database:
         type: {{ regexReplaceAll "oracle-" (regexReplaceAll ":.*$" $dbtype "") "" }}
         version: {{ regexReplaceAll "^.*:" $dbtype "" }}
@@ -135,7 +141,14 @@ pre_install_actions:
       - "PLATFORM_ROUTES=$( if base64 --version >/dev/null 2>&1; then echo -n ${platform_routes} | base64 -w0; else echo -n ${platform_routes} | base64; fi)"
       - PLATFORM_VARIABLES=e30=
       - PATH=$PATH:/var/www/html/.global/bin
-
+    
+      # Provide all extensions but blackfire, which has different pattern (blackfire-php) and is already installed
+      webimage_extra_packages:{{range $extension := .platformapp.runtime.extensions}}{{if ne $extension "blackfire"}}
+      - php-{{$extension}}{{end}}{{end}}
+      # Add pip only if we have python3 dependencies
+      {{ if .platformapp.dependencies.python3 }}
+      - python3-pip
+      {{ end }}
 
       hooks:
         post-start:
@@ -143,13 +156,11 @@ pre_install_actions:
         - composer: install
       {{ end }}
 
-      # TODO: Separate the hooks into separate exec lines
       {{ if .platformapp.hooks.build }}
         # platformsh build hooks
         - exec: '{{ trimAll "\n" .platformapp.hooks.build | replace "\n\n" "\n" | splitList "\n"  | join ` && ` }}'
       {{ end }}
 
-      # TODO: Separate the hooks into separate exec lines
       {{ if .platformapp.hooks.deploy }}
         # platformsh deploy hooks
         - exec: '{{ trimAll "\n" .platformapp.hooks.deploy | replace "\n\n" "\n" | splitList "\n"  | join ` && ` }}'
@@ -158,6 +169,10 @@ pre_install_actions:
       {{ if .platformapp.hooks.post_deploy }}
         # platformsh post_deploy hooks
         - exec: '{{ trimAll "\n" .platformapp.hooks.post_deploy | replace "\n\n" "\n" | splitList "\n"  | join ` && ` }}'
+      {{ end }}
+      # Enable blackfire php extension if listed in platform.app.yaml runtime
+      {{ if has "blackfire" .platformapp.runtime.extensions }}
+        - exec: phpenmod blackfire
       {{ end }}
 
       EOF
@@ -175,9 +190,23 @@ post_install_actions:
 - |
   #ddev-nodisplay
   {{ if eq .services.cache.type "redis:6.0" }}
-  echo "Doing 'ddev get drud/ddev-redis'"
+  echo "Running 'ddev get drud/ddev-redis'"
   ddev get drud/ddev-redis
   {{ end }}
+  
+  cat <<-ENDDOCKERFILE >> web-build/Dockerfile.platformsh
+  {{ if .platformapp.dependencies.php }}{{ range $pkg, $version := .platformapp.dependencies.php }}{{ if ne $pkg "composer/composer" }}
+  ENV COMPOSER_HOME=/usr/local/composer
+  RUN echo  "export PATH=\${PATH}:\${COMPOSER_HOME}/vendor/bin" >/etc/bashrc/composerpath.bashrc
+  RUN composer global require {{ $pkg }}{{ if ne $version "*" }}:{{ $version }}{{end}}{{end}}{{end}}
+    {{ end }}
+
+  {{ if .platformapp.dependencies.python3 }}
+    {{ range $pkg, $version := .platformapp.dependencies.python3 }}
+  RUN pip3 install {{ $pkg }}{{ if ne $version "*" }}=={{ $version }}{{end}}
+    {{ end }}
+  {{ end }}
+  ENDDOCKERFILE
 
 yaml_read_files:
   platformapp: .platform.app.yaml

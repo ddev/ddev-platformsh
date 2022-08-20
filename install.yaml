@@ -4,7 +4,7 @@ pre_install_actions:
     # Make sure we have a ddev version that can support what we do here
   - |
     #ddev-nodisplay
-    (ddev debug capabilities | grep user-env-var >/dev/null) || (echo "Please upgrade ddev to v1.20.0+ for appropriate capabilities" && false)
+    (ddev debug capabilities | grep migrate-database >/dev/null) || (echo "Please upgrade ddev to v1.21.1+ for appropriate capabilities" && false)
 
   # Get PLATFORMSH_CLI_TOKEN from user if we don't have it yet
   - |
@@ -113,6 +113,11 @@ pre_install_actions:
       }
       ENDROUTES
       )
+      if [ -f .ddev/config.platformsh.yaml ] && ! grep '#ddev-generated' .ddev/config.platformsh.yaml; then
+        echo "Existing .ddev/config.platformsh.yaml does not have #ddev-generated, so can't be updated"
+        exit 2
+      fi
+      rm -f .ddev/config.platformsh.yaml
   
       cat <<-EOF >.ddev/config.platformsh.yaml
       # #ddev-generated
@@ -165,6 +170,10 @@ pre_install_actions:
         # platformsh post_deploy hooks
         - exec: '{{ trimAll "\n" .platformapp.hooks.post_deploy | replace "\n\n" "\n" | splitList "\n"  | join ` && ` }}'
       {{ end }}
+      # Enable blackfire php extension if listed in platform.app.yaml runtime
+      {{ if has "blackfire" .platformapp.runtime.extensions }}
+        - exec: phpenmod blackfire
+      {{ end }}
 
       EOF
 
@@ -181,7 +190,7 @@ post_install_actions:
 - |
   #ddev-nodisplay
   {{ if eq .services.cache.type "redis:6.0" }}
-  echo "Doing 'ddev get drud/ddev-redis'"
+  echo "Running 'ddev get drud/ddev-redis'"
   ddev get drud/ddev-redis
   {{ end }}
   
@@ -198,8 +207,6 @@ post_install_actions:
     {{ end }}
   {{ end }}
   ENDDOCKERFILE
-  
-
 
 yaml_read_files:
   platformapp: .platform.app.yaml

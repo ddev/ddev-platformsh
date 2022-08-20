@@ -78,9 +78,10 @@ pre_install_actions:
       {{ $dbheader := index (split ":" .platformapp.relationships.database) "_0" }} 
       {{ $dbtype := replace "postgresql" "postgres" (get (get .services $dbheader) "type") }}
       export upstream_db="{{ regexReplaceAll "oracle-" (regexReplaceAll ":.*$" $dbtype "") "" }}:{{ regexReplaceAll "^.*:" $dbtype "" }}"
-      export current_db_version="$(ddev debug get-volume-db-version)"
-      if [ ${upstream_db} != ${current_db_version} ]; then
-        printf "There is an existing database in this project that doesn\'t match the upstream database type.\nYou can use 'ddev delete' to delete the existing database and continue.\n"
+      # Unfortunate sed to remove color escape sequences from ddev debug output
+      current_db_version="$(ddev debug get-volume-db-version | sed -r 's/\x1b\[[0-9;]*m?//g')" 
+      if [ ">${upstream_db}<" != ">${current_db_version}<" ]; then
+        printf "There is an existing database in this project that doesn\'t match the upstream database type.\n Please use 'ddev delete' to delete the existing database and retry, or try 'ddev debug migrate-database ${upstream_db}' to migrate the database.\n"
         false
       fi
 

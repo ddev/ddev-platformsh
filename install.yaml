@@ -80,7 +80,7 @@ pre_install_actions:
       export upstream_db="{{ regexReplaceAll "oracle-" (regexReplaceAll ":.*$" $dbtype "") "" }}:{{ regexReplaceAll "^.*:" $dbtype "" }}"
       # Unfortunate sed to remove color escape sequences from ddev debug output
       current_db_version="$(ddev debug get-volume-db-version | sed -r 's/\x1b\[[0-9;]*m?//g')" 
-      if [ ">${upstream_db}<" != ">${current_db_version}<" ]; then
+      if [ "${current_db_version}" != "" ] && [ ">${upstream_db}<" != ">${current_db_version}<" ]; then
         printf "There is an existing database in this project that doesn\'t match the upstream database type.\n Please use 'ddev delete' to delete the existing database and retry, or try 'ddev debug migrate-database ${upstream_db}' to migrate the database.\n"
         false
       fi
@@ -89,7 +89,7 @@ pre_install_actions:
   - |
       #ddev-nodisplay
       # set -x
-      platform_routes=$(cat <<-ENDROUTES
+      platform_routes=$(cat <<-"ENDROUTES"
       {
       "${DDEV_PRIMARY_URL}": {
         "primary": true,
@@ -102,6 +102,9 @@ pre_install_actions:
       }
       ENDROUTES
       )
+      PLATFORM_ROUTES="$( if base64 --version >/dev/null 2>&1; then echo -n ${platform_routes} | base64 -w0; else echo -n ${platform_routes} | base64; fi)"
+      PLATFORM_PROJECT_ENTROPY="$(echo $RANDOM | shasum -a 256 | awk '{print $1}')"
+    
       if [ -f .ddev/config.platformsh.yaml ] && ! grep '#ddev-generated' .ddev/config.platformsh.yaml; then
         echo "Existing .ddev/config.platformsh.yaml does not have #ddev-generated, so can't be updated"
         exit 2
@@ -123,22 +126,28 @@ pre_install_actions:
       # TODO: Review which of these matters and which can be dummied up
       - "PLATFORM_MOUNTS={{ range $key, $value := .platformapp.mounts }}{{ $key }} {{ end }}"
       - "PLATFORM_APP_DIR=/var/www/html"
-      - PLATFORM_PROJECT_ENTROPY=$(echo $RANDOM | shasum -a 256 | awk '{print $1}')
+      - "PLATFORM_PROJECT_ENTROPY=${PLATFORM_PROJECT_ENTROPY}"
       # Consider commit hash for PLATFORM_TREE_ID
       - "PLATFORM_TREE_ID=2dc356f2fea13ef683f9adc5fc5bd28e05ad992a"
       - "PLATFORM_DIR=/var/www/html"
-      - "PLATFORM_ROUTES=$( if base64 --version >/dev/null 2>&1; then echo -n ${platform_routes} | base64 -w0; else echo -n ${platform_routes} | base64; fi)"
-      - PLATFORM_VARIABLES=e30=
-      - PATH=$PATH:/var/www/html/.global/bin
+      - "PLATFORM_ROUTES=${PLATFORM_ROUTES}"
+      - "PLATFORM_VARIABLES=e30="
+      - "PATH=$PATH:/var/www/html/.global/bin"
     
-      # Provide all extensions but blackfire, which has different pattern (blackfire-php) and is already installed
+      # Provide all PHP extensions but blackfire, which has different pattern (blackfire-php) and is already installed
+      {{ $phpversion := trimPrefix "php:" .platformapp.type }}
       webimage_extra_packages:{{range $extension := .platformapp.runtime.extensions}}{{if ne $extension "blackfire"}}
-      - php-{{$extension}}{{end}}{{end}}
+      - php{{$phpversion}}-{{$extension}}{{end}}{{end}}
       # Add pip only if we have python3 dependencies
       {{ if .platformapp.dependencies.python3 }}
       - python3-pip
       {{ end }}
-
+      EOF
+    
+      # Because "ENDOFHOOKS" is quoted here, no variable expansion occurs
+      # so everything is left alone.
+      cat <<-"ENDOFHOOKS" >>.ddev/config.platformsh.yaml
+    
       hooks:
         post-start:
       {{ if eq .platformapp.build.flavor "composer" }}
@@ -147,24 +156,30 @@ pre_install_actions:
 
       {{ if .platformapp.hooks.build }}
         # platformsh build hooks
-        - exec: '{{ trimAll "\n" .platformapp.hooks.build | replace "\n\n" "\n" | splitList "\n"  | join ` && ` }}'
+      {{ $noblanks := regexReplaceAll "\n\n*" .platformapp.hooks.build "\n" }}
+        - exec: |
+      {{ indent 6 $noblanks }}
       {{ end }}
-
+    
       {{ if .platformapp.hooks.deploy }}
         # platformsh deploy hooks
-        - exec: '{{ trimAll "\n" .platformapp.hooks.deploy | replace "\n\n" "\n" | splitList "\n"  | join ` && ` }}'
+      {{ $noblanks := regexReplaceAll "\n\n*" .platformapp.hooks.deploy "\n" }}
+        - exec: |
+      {{ indent 6 $noblanks }}
       {{ end }}
-
+    
       {{ if .platformapp.hooks.post_deploy }}
         # platformsh post_deploy hooks
-        - exec: '{{ trimAll "\n" .platformapp.hooks.post_deploy | replace "\n\n" "\n" | splitList "\n"  | join ` && ` }}'
+      {{ $noblanks := regexReplaceAll "\n\n*" .platformapp.hooks.post_deploy "\n" }}
+        - exec: |
+      {{ indent 6 $noblanks }}
       {{ end }}
-      # Enable blackfire php extension if listed in platform.app.yaml runtime
+
       {{ if has "blackfire" .platformapp.runtime.extensions }}
         - exec: phpenmod blackfire
       {{ end }}
 
-      EOF
+      ENDOFHOOKS
 
 project_files:
   - web-build/Dockerfile.platformsh

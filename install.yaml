@@ -31,7 +31,17 @@ pre_install_actions:
     if ({{ contains "PLATFORM_PROJECT=" (list .DdevProjectConfig.web_environment | toString) }} ); then
       echo "Using existing PLATFORM_PROJECT from project config.yaml."
     else
-      printf "Please enter your platform.sh project ID (like '6k4ypl5iendqd'): "
+      # Try to get ID from local config
+      if [ -f .platform/local/project.yaml ]; then
+        echo "Getting project ID from .platform/local/project.yaml."
+        platform_project=$(awk -F': ' '{ print $2 }' .platform/local/project.yaml | head -n 1)
+        echo "Found ID: ${platform_project}"
+        ddev config --web-environment-add PLATFORM_PROJECT=${platform_project}
+        ask_id=false
+      else
+        printf "Please enter your platform.sh project ID (like '6k4ypl5iendqd'): "
+        ask_id=true
+      fi
     fi
 
   - |

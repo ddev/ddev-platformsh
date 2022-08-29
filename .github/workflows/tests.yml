@@ -40,7 +40,9 @@ jobs:
     - uses: actions/checkout@v2
     - name: Environment setup
       run: |
-        brew install bats-core mkcert yq
+        # For bats-assert and friends
+        brew tap kaos/shell
+        brew install bats-core bats-assert bats-support jq mkcert yq
         mkcert -install
 
     - name: Use ddev stable

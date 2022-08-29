@@ -30,7 +30,7 @@ jobs:
     strategy:
       matrix:
 #        ddev_version: [ HEAD ]
-#        ddev_version: [stable, HEAD]
+        ddev_version: [stable, HEAD]
 #        ddev_version: [PR]
       fail-fast: false
 
@@ -40,7 +40,7 @@ jobs:
     - uses: actions/checkout@v2
     - name: Environment setup
       run: |
-        brew install bats-core mkcert
+        brew install bats-core mkcert yq
         mkcert -install
 
     - name: Use ddev stable
@@ -76,3 +76,6 @@ jobs:
     - name: tests
       run: bats tests
 
+      # keepalive-workflow adds a dummy commit if there's no other action here, keeps
+      # GitHub from turning off tests after 60 days
+    - uses: gautamkrishnar/keepalive-workflow@v1

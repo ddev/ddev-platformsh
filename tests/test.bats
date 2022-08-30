@@ -31,6 +31,10 @@ per_test_setup() {
   ddev restart >/dev/null
 }
 
+per_test_teardown() {
+  ddev delete -Oy ${PROJNAME} || true
+}
+
 @test "drupal9" {
   template="drupal9"
   for source in $PROJECT_SOURCE platformsh/ddev-platformsh; do
@@ -46,16 +50,38 @@ per_test_setup() {
     assert_output "web"
 
     docker inspect ddev-${PROJNAME}-redis >/dev/null
+    per_test_teardown
   done
 }
 
-#@test "install from release" {
-#  set -eu -o pipefail
-#  cd ${TESTDIR} || ( printf "unable to cd to ${TESTDIR}\n" && exit 1 )
-#  echo "# ddev get drud/ddev-platformsh with project ${PROJNAME} in ${TESTDIR} ($(pwd))" >&3
-#  ddev get platformsh/ddev-platformsh
-#  ddev restart >/dev/null
-#  [ "$(ddev exec -s db 'echo ${DDEV_DATABASE}')" = "mysql:8.0" ]
-#  [ "$(ddev exec 'echo ${DDEV_PHP_VERSION}')" = "8.0" ]
-#  docker inspect ddev-${PROJNAME}-redis >/dev/null
-#}
+
+@test "php" {
+  template="php"
+  for source in $PROJECT_SOURCE platformsh/ddev-platformsh; do
+    echo "# ddev get $source with template ${template} PROJNAME=${PROJNAME} in ${TESTDIR} ($(pwd))" >&3
+    per_test_setup
+
+    run ddev exec "php --version | awk 'NR==1 { sub(/\.[0-9]+$/, \"\", \$2); print \$2 }'"
+    assert_output "8.0"
+    ddev describe -j >describe.json
+    run  jq -r .raw.docroot <describe.json
+    assert_output "web"
+  done
+}
+
+
+@test "laravel" {
+  template="laravel"
+  for source in $PROJECT_SOURCE platformsh/ddev-platformsh; do
+    echo "# ddev get $source with template ${template} PROJNAME=${PROJNAME} in ${TESTDIR} ($(pwd))" >&3
+    per_test_setup
+
+    run ddev exec "php --version | awk 'NR==1 { sub(/\.[0-9]+$/, \"\", \$2); print \$2 }'"
+    assert_output "8.0"
+    ddev describe -j >describe.json
+    run  jq -r .raw.docroot <describe.json
+    assert_output "public"
+    docker inspect ddev-${PROJNAME}-redis >/dev/null
+
+  done
+}

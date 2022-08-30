@@ -75,6 +75,7 @@ pre_install_actions:
     # We don't want to allow new config if they're changing database types from what is currently there.
   - |
       #ddev-nodisplay
+      {{ if .platformapp.relationships.database }}
       {{ $dbheader := index (split ":" .platformapp.relationships.database) "_0" }} 
       {{ $dbtype := replace "postgresql" "postgres" (get (get .services $dbheader) "type") }}
       export upstream_db="{{ regexReplaceAll "oracle-" (regexReplaceAll ":.*$" $dbtype "") "" }}:{{ regexReplaceAll "^.*:" $dbtype "" }}"
@@ -84,6 +85,7 @@ pre_install_actions:
         printf "There is an existing database in this project that doesn\'t match the upstream database type.\n Please use 'ddev delete' to delete the existing database and retry, or try 'ddev debug migrate-database ${upstream_db}' to migrate the database.\n"
         false
       fi
+      {{ end }}
 
     # Write a config.platformsh.yaml based on calculated values, php version, database, docroot
   - |
@@ -114,13 +116,17 @@ pre_install_actions:
       cat <<-EOF >.ddev/config.platformsh.yaml
       # #ddev-generated
       # Generated configuration based on platform.sh project configuration
+      {{ if .platformapp.relationshps.database }}
       {{ $dbheader := index (split ":" .platformapp.relationships.database) "_0" }} 
       {{ $dbtype := replace "postgresql" "postgres" (get (get .services $dbheader) "type") }}
+      {{ end }}
       {{ $phpversion := trimPrefix "php:" .platformapp.type }}
       php_version: {{ $phpversion }}
+      {{ if .platformapp.relationships.database }}
       database:
         type: {{ regexReplaceAll "oracle-" (regexReplaceAll ":.*$" $dbtype "") "" }}
         version: {{ regexReplaceAll "^.*:" $dbtype "" }}
+      {{ end }}
       docroot: {{ dig "web" "locations" "/" "root" "notfound" .platformapp }}
       web_environment:
       # TODO: Review which of these matters and which can be dummied up

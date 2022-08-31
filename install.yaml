@@ -75,9 +75,10 @@ pre_install_actions:
     # We don't want to allow new config if they're changing database types from what is currently there.
   - |
       #ddev-nodisplay
+      {{ $dbtype := "" }}
       {{ if .platformapp.relationships.database }}
       {{ $dbheader := index (split ":" .platformapp.relationships.database) "_0" }} 
-      {{ $dbtype := replace "postgresql" "postgres" (get (get .services $dbheader) "type") }}
+      {{ $dbtype = replace "postgresql" "postgres" (get (get .services $dbheader) "type") }}
       export upstream_db="{{ regexReplaceAll "oracle-" (regexReplaceAll ":.*$" $dbtype "") "" }}:{{ regexReplaceAll "^.*:" $dbtype "" }}"
       # Unfortunate sed to remove color escape sequences from ddev debug output
       current_db_version="$(ddev debug get-volume-db-version | sed -r 's/\x1b\[[0-9;]*m?//g')" 
@@ -116,9 +117,10 @@ pre_install_actions:
       cat <<-EOF >.ddev/config.platformsh.yaml
       # #ddev-generated
       # Generated configuration based on platform.sh project configuration
+      {{ $dbtype := "" }}
       {{ if .platformapp.relationshps.database }}
       {{ $dbheader := index (split ":" .platformapp.relationships.database) "_0" }} 
-      {{ $dbtype := replace "postgresql" "postgres" (get (get .services $dbheader) "type") }}
+      {{ $dbtype = replace "postgresql" "postgres" (get (get .services $dbheader) "type") }}
       {{ end }}
       {{ $phpversion := trimPrefix "php:" .platformapp.type }}
       php_version: {{ $phpversion }}
@@ -143,12 +145,14 @@ pre_install_actions:
       # Provide all PHP extensions but blackfire, which has different pattern (blackfire-php) and is already installed
       # and pdo_pgsql, which is already installed
       {{ $phpversion := trimPrefix "php:" .platformapp.type }}
+      {{ if .platformapp.runtime.extensions }}
       {{ $phpextensions := without .platformapp.runtime.extensions "blackfire" "pdo_pgsql" "sodium" }}
       webimage_extra_packages:{{range $extension := $phpextensions }}
       - php{{$phpversion}}-{{$extension}}{{end}}
       {{ if has "sodium" .platformapp.runtime.extensions }}
       - php-sodium
       {{end}}
+      {{ end }}
     
       # Add pip only if we have python3 dependencies
       {{ if .platformapp.dependencies.python3 }}

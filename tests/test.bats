@@ -66,6 +66,9 @@ per_test_teardown() {
     ddev describe -j >describe.json
     run  jq -r .raw.docroot <describe.json
     assert_output "web"
+
+    per_test_teardown
+
   done
 }
 
@@ -82,6 +85,7 @@ per_test_teardown() {
     run  jq -r .raw.docroot <describe.json
     assert_output "public"
     docker inspect ddev-${PROJNAME}-redis >/dev/null
+    per_test_teardown
 
   done
 }

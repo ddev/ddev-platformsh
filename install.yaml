@@ -88,7 +88,8 @@ pre_install_actions:
       fi
       {{ end }}
 
-    # Write a config.platformsh.yaml based on calculated values, php version, database, docroot
+
+# Write a config.platformsh.yaml based on calculated values, php version, database, docroot
   - |
       #ddev-nodisplay
       # set -x
@@ -234,6 +235,19 @@ post_install_actions:
     {{ end }}
   {{ end }}
   ENDDOCKERFILE
+
+- | 
+  #ddev-nodisplay
+  cd ..
+  set -x
+  project_type=$(ddev describe -j | jq -r .raw.type)
+  case $project_type in 
+    laravel)
+      # TODO: This depends on sed and cat, but we can't start the project unless these are created
+      # so can't use ddev exec yet. 
+      cat .env.example | sed  -E 's/DB_(HOST|DATABASE|USERNAME|PASSWORD)=(.*)/DB_\1=db/g' > .env
+      sed -i "s#APP_URL=.*#APP_URL=${DDEV_PRIMARY_URL}#g" .env
+  esac
 
 yaml_read_files:
   platformapp: .platform.app.yaml

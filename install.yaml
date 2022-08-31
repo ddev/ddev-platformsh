@@ -118,7 +118,7 @@ pre_install_actions:
       # #ddev-generated
       # Generated configuration based on platform.sh project configuration
       {{ $dbtype := "" }}
-      {{ if .platformapp.relationshps.database }}
+      {{ if .platformapp.relationships.database }}
       {{ $dbheader := index (split ":" .platformapp.relationships.database) "_0" }} 
       {{ $dbtype = replace "postgresql" "postgres" (get (get .services $dbheader) "type") }}
       {{ end }}
@@ -141,7 +141,9 @@ pre_install_actions:
       - "PLATFORM_ROUTES=${PLATFORM_ROUTES}"
       - "PLATFORM_VARIABLES=e30="
       - "PATH=$PATH:/var/www/html/.global/bin"
-    
+      {{ if .platformapp.variables.env }}
+      {{ range $key, $value := .platformapp.variables.env }}
+      - "{{$key}}={{$value}}"{{ end }}{{ end }}
       # Provide all PHP extensions but blackfire, which has different pattern (blackfire-php) and is already installed
       # and pdo_pgsql, which is already installed
       {{ $phpversion := trimPrefix "php:" .platformapp.type }}
@@ -209,11 +211,16 @@ post_install_actions:
 # If redis is configured, do a ddev get to get it
 - |
   #ddev-nodisplay
+  # TODO: Looking for specific redis here will not work
   {{ if eq .services.cache.type "redis:6.0" }}
   echo "Running 'ddev get drud/ddev-redis'"
   ddev get drud/ddev-redis
   {{ end }}
-  
+  # TODO: Looking for specific elasticsearch here will never work
+  {{ if eq .services.search.type "elasticsearch:7.5" }}
+  echo "Running 'ddev get drud/ddev-elasticsearch'"
+  ddev get drud/ddev-elasticsearch
+  {{ end }}
   cat <<-ENDDOCKERFILE >> web-build/Dockerfile.platformsh
   {{ if .platformapp.dependencies.php }}{{ range $pkg, $version := .platformapp.dependencies.php }}{{ if ne $pkg "composer/composer" }}
   ENV COMPOSER_HOME=/usr/local/composer

@@ -30,24 +30,17 @@ pre_install_actions:
     # echo 'list ddevprojectconfig.web_environment={{ list .DdevProjectConfig.web_environment | toString }}'
     if ({{ contains "PLATFORM_PROJECT=" (list .DdevProjectConfig.web_environment | toString) }} ); then
       echo "Using existing PLATFORM_PROJECT from project config.yaml."
-    else
-      # Try to get ID from local config
-      if [ -f .platform/local/project.yaml ]; then
-        echo "Getting project ID from .platform/local/project.yaml."
-        platform_project=$(awk -F': ' '{ print $2 }' .platform/local/project.yaml | head -n 1)
-        echo "Found ID: ${platform_project}"
-        ddev config --web-environment-add PLATFORM_PROJECT=${platform_project}
-        ask_id=false
-      else
-        printf "Please enter your platform.sh project ID (like '6k4ypl5iendqd'): "
-        ask_id=true
-      fi
     fi
 
   - |
     #ddev-nodisplay
     if !( {{ contains "PLATFORM_PROJECT" (list .DdevProjectConfig.web_environment | toString) }} ); then
-      read platform_project
+      if ( {{ contains "id" (list .localproject | toString) }}); then
+        platform_project={{ .localproject.id }}
+      else
+        printf "Please enter your platform.sh project ID (like '6k4ypl5iendqd'): "
+        read platform_project
+      fi
       echo "platform_project = '${platform_project}'"
       # Put the platform_project in to the project's web environment
       ddev config --web-environment-add PLATFORM_PROJECT=${platform_project}
@@ -231,4 +224,5 @@ post_install_actions:
 yaml_read_files:
   platformapp: .platform.app.yaml
   services: .platform/services.yaml
+  localproject: .platform/local/project.yaml
 

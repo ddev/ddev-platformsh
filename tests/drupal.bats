@@ -2,15 +2,11 @@
 # brew tap kaos/shell &&
 # brew install bats-core bats-assert bats-support jq mkcert yq
 setup() {
-  echo "# start setup" >&3
   load setup.sh
-  echo "# end setup" >&3
 }
 
 teardown() {
-  echo "# begin teardown" >&3
   load teardown.sh
-  echo "# end teardown" >&3
 }
 
 @test "drupal9" {

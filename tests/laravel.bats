@@ -4,12 +4,9 @@
 setup() {
   load setup.sh
   load per_test.sh
-  echo "# setup complete" >&3
-
 }
 
 teardown() {
-  echo "# begin teardown" >&3
    load teardown.sh
 }
 

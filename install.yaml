@@ -75,8 +75,10 @@ pre_install_actions:
     # We don't want to allow new config if they're changing database types from what is currently there.
   - |
       #ddev-nodisplay
+      {{ $dbtype := "" }}
+      {{ if .platformapp.relationships.database }}
       {{ $dbheader := index (split ":" .platformapp.relationships.database) "_0" }} 
-      {{ $dbtype := replace "postgresql" "postgres" (get (get .services $dbheader) "type") }}
+      {{ $dbtype = replace "postgresql" "postgres" (get (get .services $dbheader) "type") }}
       export upstream_db="{{ regexReplaceAll "oracle-" (regexReplaceAll ":.*$" $dbtype "") "" }}:{{ regexReplaceAll "^.*:" $dbtype "" }}"
       # Unfortunate sed to remove color escape sequences from ddev debug output
       current_db_version="$(ddev debug get-volume-db-version | sed -r 's/\x1b\[[0-9;]*m?//g')" 
@@ -84,8 +86,10 @@ pre_install_actions:
         printf "There is an existing database in this project that doesn\'t match the upstream database type.\n Please use 'ddev delete' to delete the existing database and retry, or try 'ddev debug migrate-database ${upstream_db}' to migrate the database.\n"
         false
       fi
+      {{ end }}
 
-    # Write a config.platformsh.yaml based on calculated values, php version, database, docroot
+
+# Write a config.platformsh.yaml based on calculated values, php version, database, docroot
   - |
       #ddev-nodisplay
       # set -x
@@ -114,13 +118,18 @@ pre_install_actions:
       cat <<-EOF >.ddev/config.platformsh.yaml
       # #ddev-generated
       # Generated configuration based on platform.sh project configuration
+      {{ $dbtype := "" }}
+      {{ if .platformapp.relationships.database }}
       {{ $dbheader := index (split ":" .platformapp.relationships.database) "_0" }} 
-      {{ $dbtype := replace "postgresql" "postgres" (get (get .services $dbheader) "type") }}
+      {{ $dbtype = replace "postgresql" "postgres" (get (get .services $dbheader) "type") }}
+      {{ end }}
       {{ $phpversion := trimPrefix "php:" .platformapp.type }}
       php_version: {{ $phpversion }}
+      {{ if .platformapp.relationships.database }}
       database:
         type: {{ regexReplaceAll "oracle-" (regexReplaceAll ":.*$" $dbtype "") "" }}
         version: {{ regexReplaceAll "^.*:" $dbtype "" }}
+      {{ end }}
       docroot: {{ dig "web" "locations" "/" "root" "notfound" .platformapp }}
       web_environment:
       # TODO: Review which of these matters and which can be dummied up
@@ -133,16 +142,20 @@ pre_install_actions:
       - "PLATFORM_ROUTES=${PLATFORM_ROUTES}"
       - "PLATFORM_VARIABLES=e30="
       - "PATH=$PATH:/var/www/html/.global/bin"
-    
+      {{ if .platformapp.variables.env }}
+      {{ range $key, $value := .platformapp.variables.env }}
+      - "{{$key}}={{$value}}"{{ end }}{{ end }}
       # Provide all PHP extensions but blackfire, which has different pattern (blackfire-php) and is already installed
       # and pdo_pgsql, which is already installed
       {{ $phpversion := trimPrefix "php:" .platformapp.type }}
+      {{ if .platformapp.runtime.extensions }}
       {{ $phpextensions := without .platformapp.runtime.extensions "blackfire" "pdo_pgsql" "sodium" }}
       webimage_extra_packages:{{range $extension := $phpextensions }}
       - php{{$phpversion}}-{{$extension}}{{end}}
       {{ if has "sodium" .platformapp.runtime.extensions }}
       - php-sodium
       {{end}}
+      {{ end }}
     
       # Add pip only if we have python3 dependencies
       {{ if .platformapp.dependencies.python3 }}
@@ -199,11 +212,14 @@ post_install_actions:
 # If redis is configured, do a ddev get to get it
 - |
   #ddev-nodisplay
-  {{ if eq .services.cache.type "redis:6.0" }}
+  {{ if and .services.cache.type (hasPrefix "redis" .services.cache.type) }}
   echo "Running 'ddev get drud/ddev-redis'"
   ddev get drud/ddev-redis
   {{ end }}
-  
+  {{ if and .services.search.type (hasPrefix "elasticsearch" .services.search.type "elasticsearch") }}
+  echo "Running 'ddev get drud/ddev-elasticsearch'"
+  ddev get drud/ddev-elasticsearch
+  {{ end }}
   cat <<-ENDDOCKERFILE >> web-build/Dockerfile.platformsh
   {{ if .platformapp.dependencies.php }}{{ range $pkg, $version := .platformapp.dependencies.php }}{{ if ne $pkg "composer/composer" }}
   ENV COMPOSER_HOME=/usr/local/composer
@@ -217,6 +233,23 @@ post_install_actions:
     {{ end }}
   {{ end }}
   ENDDOCKERFILE
+
+- | 
+  #ddev-nodisplay
+  cd ..
+  unset DDEV_DEBUG
+  project_type=$(ddev describe -j | jq -r .raw.type)
+  case $project_type in 
+    laravel)
+      # TODO: This depends on perl, but we can't start the project unless these are created
+      # so can't use ddev exec yet. 
+      perl -p -e 's/DB_(HOST|DATABASE|USERNAME|PASSWORD)=(.*)/DB_\1=db/g' .env.example >.env
+      perl -pi.bak -e "s#APP_URL=.*#APP_URL=${DDEV_PRIMARY_URL}#g" .env
+      ;;
+    drupal9)
+      mkdir -p .drush
+      ;;
+  esac
 
 yaml_read_files:
   platformapp: .platform.app.yaml

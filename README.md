@@ -18,11 +18,18 @@ This repository is used with `ddev get platformsh/ddev-platformsh` to get a rich
   * hooks are converted to DDEV post-start hooks
   * A working `ddev pull platform` integration with all mounts is created.
   
+## What has been tested
+
+These Platform.sh templates are included in the automated tests that run nightly:
+
+* [php](https://github.com/platformsh-templates/php)
+* [drupal9](https://github.com/platformsh-templates/drupal9)
+* [laravel](https://github.com/platformsh-templates/laravel)
 
 ## What will it do in the future
 
 - [x] Populate important PLATFORMSH environment variables that would be found upstream
-- [ ] Populate PHP and other dependencies configured upstream
+- [x] Populate PHP and other dependencies configured upstream
 - [x] Automatically figure out the name and other information of the upstream project
 - [x] Automatically configure the .ddev/providers/platform so you can immediately do a `ddev pull platform` with no configuration effort.
 - [ ] Let us know what's important to you!

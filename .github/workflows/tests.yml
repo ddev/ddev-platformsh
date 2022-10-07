@@ -30,17 +30,20 @@ jobs:
     strategy:
       matrix:
 #        ddev_version: [ HEAD ]
-#        ddev_version: [stable, HEAD]
+        ddev_version: [stable, HEAD]
 #        ddev_version: [PR]
       fail-fast: false
 
     runs-on: ubuntu-20.04
 
     steps:
+    - run: echo "/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin" >> $GITHUB_PATH
     - uses: actions/checkout@v2
     - name: Environment setup
       run: |
-        brew install bats-core mkcert
+        # For bats-assert and friends
+        brew tap kaos/shell
+        brew install bats-core bats-assert bats-support jq mkcert yq
         mkcert -install
 
     - name: Use ddev stable
@@ -76,3 +79,6 @@ jobs:
     - name: tests
       run: bats tests
 
+      # keepalive-workflow adds a dummy commit if there's no other action here, keeps
+      # GitHub from turning off tests after 60 days
+    - uses: gautamkrishnar/keepalive-workflow@v1

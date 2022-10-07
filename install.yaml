@@ -212,8 +212,7 @@ post_install_actions:
 # If redis is configured, do a ddev get to get it
 - |
   #ddev-nodisplay
-  # TODO: Looking for specific redis here will not work
-  {{ if eq .services.cache.type "redis:6.0" }}
+  {{ if hasPrefix "redis" .services.cache.type }}
   echo "Running 'ddev get drud/ddev-redis'"
   ddev get drud/ddev-redis
   {{ end }}

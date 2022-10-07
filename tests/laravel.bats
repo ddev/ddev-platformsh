@@ -10,7 +10,7 @@ setup() {
 
 teardown() {
   echo "# begin teardown" >&3
-  load teardown.sh
+   load teardown.sh
 }
 
 @test "laravel" {

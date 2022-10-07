@@ -243,10 +243,10 @@ post_install_actions:
   project_type=$(ddev describe -j | jq -r .raw.type)
   case $project_type in 
     laravel)
-      # TODO: This depends on sed and cat, but we can't start the project unless these are created
+      # TODO: This depends on perl, but we can't start the project unless these are created
       # so can't use ddev exec yet. 
-      cat .env.example | sed  -E 's/DB_(HOST|DATABASE|USERNAME|PASSWORD)=(.*)/DB_\1=db/g' > .env
-      sed -i "s#APP_URL=.*#APP_URL=${DDEV_PRIMARY_URL}#g" .env
+      perl -p -e 's/DB_(HOST|DATABASE|USERNAME|PASSWORD)=(.*)/DB_\1=db/g' .env.example >.env
+      perl -pi.bak -e "s#APP_URL=.*#APP_URL=${DDEV_PRIMARY_URL}#g" .env
       ;;
     drupal9)
       mkdir -p .drush

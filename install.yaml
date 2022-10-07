@@ -216,8 +216,7 @@ post_install_actions:
   echo "Running 'ddev get drud/ddev-redis'"
   ddev get drud/ddev-redis
   {{ end }}
-  # TODO: Looking for specific elasticsearch here will never work
-  {{ if eq .services.search.type "elasticsearch:7.5" }}
+  {{ if and .services.search.type (hasPrefix "elasticsearch" .services.search.type "elasticsearch") }}
   echo "Running 'ddev get drud/ddev-elasticsearch'"
   ddev get drud/ddev-elasticsearch
   {{ end }}

@@ -22,7 +22,7 @@ teardown() {
     assert_output "7.4"
     ddev describe -j >describe.json
     run  jq -r .raw.docroot <describe.json
-    assert_output "web"
+    assert_output ""
     per_test_teardown
   done
 }

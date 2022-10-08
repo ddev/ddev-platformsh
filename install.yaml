@@ -169,6 +169,8 @@ pre_install_actions:
     
       hooks:
         post-start:
+        - platform self:update -qy --no-major || true
+
       {{ if eq .platformapp.build.flavor "composer" }}
         - composer: install
       {{ end }}
@@ -179,14 +181,14 @@ pre_install_actions:
         - exec: |
       {{ indent 6 $noblanks }}
       {{ end }}
-    
+
       {{ if .platformapp.hooks.deploy }}
         # platformsh deploy hooks
       {{ $noblanks := regexReplaceAll "\n\n*" .platformapp.hooks.deploy "\n" }}
         - exec: |
       {{ indent 6 $noblanks }}
       {{ end }}
-    
+
       {{ if .platformapp.hooks.post_deploy }}
         # platformsh post_deploy hooks
       {{ $noblanks := regexReplaceAll "\n\n*" .platformapp.hooks.post_deploy "\n" }}

@@ -169,7 +169,7 @@ pre_install_actions:
     
       hooks:
         post-start:
-        - platform self:update -qy --no-major || true
+        - exec: platform self:update -qy --no-major || true
 
       {{ if eq .platformapp.build.flavor "composer" }}
         - composer: install

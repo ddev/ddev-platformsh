@@ -216,7 +216,7 @@ post_install_actions:
   echo "Running 'ddev get drud/ddev-redis'"
   ddev get drud/ddev-redis
   {{ end }}
-  {{ if and .services.search.type (hasPrefix "elasticsearch" .services.search.type "elasticsearch") }}
+  {{ if and .services.search.type (hasPrefix "elasticsearch" .services.search.type) }}
   echo "Running 'ddev get drud/ddev-elasticsearch'"
   ddev get drud/ddev-elasticsearch
   {{ end }}

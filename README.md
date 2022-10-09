@@ -20,11 +20,12 @@ This repository is used with `ddev get platformsh/ddev-platformsh` to get a rich
   
 ## What has been tested
 
-These Platform.sh templates are included in the automated tests that run nightly:
+These Platform.sh templates are included in the automated tests that run nightly. They will be growing in maturity with your feedback!
 
 * [php](https://github.com/platformsh-templates/php)
-* [drupal9](https://github.com/platformsh-templates/drupal9)
+* [drupal9](https://github.com/platformsh-templates/drupal9) and [drupal8](https://github.com/platformsh-templates/drupal8)
 * [laravel](https://github.com/platformsh-templates/laravel)
+* [wordpress-composer](https://github.com/platformsh-templates/wordpress-composer)
 
 ## What will it do in the future
 

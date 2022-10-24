@@ -19,9 +19,9 @@ pre_install_actions:
     #ddev-nodisplay
     if !( {{ contains "PLATFORMSH_CLI_TOKEN" (list .DdevGlobalConfig.web_environment | toString) }} || {{ contains "PLATFORMSH_CLI_TOKEN" (list .DdevProjectConfig.web_environment | toString) }} ); then
       read token
-      # Put the token in to the project web environment
-      ddev config --web-environment-add PLATFORMSH_CLI_TOKEN=${token}
-      echo "PLATFORMSH_CLI_TOKEN set for project"
+      # Put the token into the global web environment
+      ddev config global --web-environment-add PLATFORMSH_CLI_TOKEN=${token}
+      echo "PLATFORMSH_CLI_TOKEN set globally"
     fi
 
   # Get PLATFORM_PROJECT from user if we don't have it yet

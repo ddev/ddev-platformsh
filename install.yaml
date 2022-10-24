@@ -21,7 +21,7 @@ pre_install_actions:
       read token
       # Put the token into the global web environment
       ddev config global --web-environment-add PLATFORMSH_CLI_TOKEN=${token}
-      echo "PLATFORMSH_CLI_TOKEN set for project"
+      echo "PLATFORMSH_CLI_TOKEN set globally"
     fi
 
   # Get PLATFORM_PROJECT from user if we don't have it yet

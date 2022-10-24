@@ -118,6 +118,7 @@ pre_install_actions:
       cat <<-EOF >.ddev/config.platformsh.yaml
       # #ddev-generated
       # Generated configuration based on platform.sh project configuration
+      disable_settings_management: true
       {{ $dbtype := "" }}
       {{/* TODO: Is this valid to look for "database" stanza, or is this free-form? */}}
       {{ if .platformapp.relationships.database }}
@@ -137,6 +138,7 @@ pre_install_actions:
       docroot: {{ dig "web" "locations" "/" "root" "notfound" .platformapp }}
       web_environment:
       # TODO: Review which of these matters and which can be dummied up
+      - "PLATFORM_RELATIONSHIPS=$(echo '{  "database": [ { "username": "db", "scheme": "mysql", "service": "mysqldb", "fragment": null, "ip": "db", "hostname": "db", "public": false, "cluster": "db", "host": "db", "rel": "mysql", "query": { "is_master": true }, "path": "db", "password": "db", "type": "mariadb:10.4", "port": 3306, "host_mapped": false } ] }' | base64)"
       - "PLATFORM_MOUNTS={{ range $key, $value := .platformapp.mounts }}{{ $key }} {{ end }}"
       - "PLATFORM_APP_DIR=/var/www/html"
       - "PLATFORM_PROJECT_ENTROPY=${PLATFORM_PROJECT_ENTROPY}"

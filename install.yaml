@@ -170,6 +170,7 @@ pre_install_actions:
       hooks:
         post-start:
         - exec: platform self:update -qy --no-major || true
+        - exec: '[ ! -z "$PLATFORMSH_CLI_TOKEN" ] && platform ssh-cert:load  -y'
 
       {{ if eq .platformapp.build.flavor "composer" }}
         - composer: install

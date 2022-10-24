@@ -3,4 +3,4 @@ RUN ln -sf /var/www/html /app
 RUN echo "deb-src http://deb.debian.org/debian bullseye main" >> /etc/apt/sources.list
 RUN apt-get update && apt-get -y build-dep python2 python3
 # python2-pip is no longer available for Debian bullseye
-RUN wget https://bootstrap.pypa.io/pip/2.7/get-pip.py && python get-pip.py
+RUN wget https://bootstrap.pypa.io/pip/2.7/get-pip.py && python2 get-pip.py

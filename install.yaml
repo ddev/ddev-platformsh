@@ -119,15 +119,19 @@ pre_install_actions:
       # #ddev-generated
       # Generated configuration based on platform.sh project configuration
       {{ $dbtype := "" }}
+      {{/* TODO: Is this valid to look for "database" stanza, or is this free-form? */}}
       {{ if .platformapp.relationships.database }}
-      {{ $dbheader := index (split ":" .platformapp.relationships.database) "_0" }} 
-      {{ $dbtype = replace "postgresql" "postgres" (get (get .services $dbheader) "type") }}
+      {{ $relationship_name := index (split ":" .platformapp.relationships.database) "_0" }} 
+      # relationship_name={{ $relationship_name }}
+      {{ $dbtype = replace "postgresql" "postgres" (get (get .services $relationship_name) "type") }}
+      {{ $dbtype = regexReplaceAll "^mysql:" $dbtype "mariadb:" }}
+      {{ $dbtype = regexReplaceAll "^oracle-mysql:" $dbtype "mysql:" }}
       {{ end }}
       {{ $phpversion := trimPrefix "php:" .platformapp.type }}
       php_version: {{ $phpversion }}
       {{ if .platformapp.relationships.database }}
       database:
-        type: {{ regexReplaceAll "oracle-" (regexReplaceAll ":.*$" $dbtype "") "" }}
+        type: {{ regexReplaceAll ":.*$" $dbtype "" }}
         version: {{ regexReplaceAll "^.*:" $dbtype "" }}
       {{ end }}
       docroot: {{ dig "web" "locations" "/" "root" "notfound" .platformapp }}

@@ -108,6 +108,18 @@ pre_install_actions:
       )
       PLATFORM_ROUTES="$( if base64 --version >/dev/null 2>&1; then echo -n ${platform_routes} | base64 -w0; else echo -n ${platform_routes} | base64; fi)"
       PLATFORM_PROJECT_ENTROPY="$(echo $RANDOM | shasum -a 256 | awk '{print $1}')"
+      relationships=()
+      {{ $dbtype := "" }}
+      {{ if .platformapp.relationships.database }}
+      {{ $relationship_name := index (split ":" .platformapp.relationships.database) "_0" }} 
+      {{ $dbtype = replace "postgresql" "postgres" (get (get .services $relationship_name) "type") }}
+      {{ $dbtype = regexReplaceAll "^mysql:" $dbtype "mariadb:" }}
+      {{ $dbtype = regexReplaceAll "^oracle-mysql:" $dbtype "mysql:" }}
+      DBTYPE={{ regexReplaceAll ":.*$" $dbtype "" }}
+      DBVERSION={{ regexReplaceAll "^.*:" $dbtype "" }}
+      relationships+=$(.ddev/generate_platform_relationships.sh '{{ $relationship_name }}' '{{ $dbtype }}' | base64)
+      {{ end }}
+      PLATFORM_RELATIONSHIPS="$((echo '{'; for r in ${relationships[@]::${#relationships[@]}-1}; do echo $r | base64 -d; echo ', '; done; echo ${relationships[@]: -1:1} | base64 -d; echo ' }') | base64)"
     
       if [ -f .ddev/config.platformsh.yaml ] && ! grep '#ddev-generated' .ddev/config.platformsh.yaml; then
         echo "Existing .ddev/config.platformsh.yaml does not have #ddev-generated, so can't be updated"
@@ -119,26 +131,15 @@ pre_install_actions:
       # #ddev-generated
       # Generated configuration based on platform.sh project configuration
       disable_settings_management: true
-      {{ $dbtype := "" }}
-      {{/* TODO: Is this valid to look for "database" stanza, or is this free-form? */}}
-      {{ if .platformapp.relationships.database }}
-      {{ $relationship_name := index (split ":" .platformapp.relationships.database) "_0" }} 
-      # relationship_name={{ $relationship_name }}
-      {{ $dbtype = replace "postgresql" "postgres" (get (get .services $relationship_name) "type") }}
-      {{ $dbtype = regexReplaceAll "^mysql:" $dbtype "mariadb:" }}
-      {{ $dbtype = regexReplaceAll "^oracle-mysql:" $dbtype "mysql:" }}
-      {{ end }}
       {{ $phpversion := trimPrefix "php:" .platformapp.type }}
       php_version: {{ $phpversion }}
-      {{ if .platformapp.relationships.database }}
       database:
-        type: {{ regexReplaceAll ":.*$" $dbtype "" }}
-        version: {{ regexReplaceAll "^.*:" $dbtype "" }}
-      {{ end }}
+        type: ${DBTYPE}
+        version: ${DBVERSION}
       docroot: {{ dig "web" "locations" "/" "root" "notfound" .platformapp }}
       web_environment:
       # TODO: Review which of these matters and which can be dummied up
-      - "PLATFORM_RELATIONSHIPS=$(echo '{  "database": [ { "username": "db", "scheme": "mysql", "service": "mysqldb", "fragment": null, "ip": "db", "hostname": "db", "public": false, "cluster": "db", "host": "db", "rel": "mysql", "query": { "is_master": true }, "path": "db", "password": "db", "type": "mariadb:10.4", "port": 3306, "host_mapped": false } ] }' | base64)"
+      - "PLATFORM_RELATIONSHIPS=${PLATFORM_RELATIONSHIPS}"
       - "PLATFORM_MOUNTS={{ range $key, $value := .platformapp.mounts }}{{ $key }} {{ end }}"
       - "PLATFORM_APP_DIR=/var/www/html"
       - "PLATFORM_PROJECT_ENTROPY=${PLATFORM_PROJECT_ENTROPY}"
@@ -213,6 +214,7 @@ project_files:
   - web-build/Dockerfile.platformsh
   - homeadditions/.bashrc.d/platformsh-environment.sh
   - providers/platform.yaml
+  - generate_platform_relationships.sh
 
 global_files:
   - commands/web/platform

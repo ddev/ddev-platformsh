@@ -117,7 +117,7 @@ pre_install_actions:
       {{ $dbtype = regexReplaceAll "^oracle-mysql:" $dbtype "mysql:" }}
       DBTYPE={{ regexReplaceAll ":.*$" $dbtype "" }}
       DBVERSION={{ regexReplaceAll "^.*:" $dbtype "" }}
-      relationships+=$(.ddev/generate_platform_relationships.sh '{{ $relationship_name }}' '{{ $dbtype }}' | base64)
+      relationships+=$(.ddev/generate_db_relationships.sh '{{ $relationship_name }}' '{{ $dbtype }}' | base64)
       {{ end }}
       PLATFORM_RELATIONSHIPS="$((echo '{'; for r in ${relationships[@]::${#relationships[@]}-1}; do echo $r | base64 -d; echo ', '; done; echo ${relationships[@]: -1:1} | base64 -d; echo ' }') | base64)"
     

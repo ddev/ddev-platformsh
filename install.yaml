@@ -175,8 +175,8 @@ post_install_actions:
   {{ $dbtype = replace "postgresql" "postgres" (get (get .services $relationship_name) "type") }}
   {{ $dbtype = regexReplaceAll "^mysql:" $dbtype "mariadb:" }}
   {{ $dbtype = regexReplaceAll "^oracle-mysql:" $dbtype "mysql:" }}
-  DBTYPE={{ regexReplaceAll ":.*$" $dbtype "" }}
-  DBVERSION={{ regexReplaceAll "^.*:" $dbtype "" }}
+  export DBTYPE={{ regexReplaceAll ":.*$" $dbtype "" }}
+  export DBVERSION={{ regexReplaceAll "^.*:" $dbtype "" }}
   relationships+=($(./generate_db_relationship.sh '{{ $relationship_name }}' '{{ $dbtype }}' | base64))
   #printf "relationships length after db=${#relationships[@]}\nrelationships value=$(echo $relationships | base64 -d)"
   {{ end }}
@@ -209,8 +209,8 @@ post_install_actions:
   {{ $phpversion := trimPrefix "php:" .platformapp.type }}
   php_version: {{ $phpversion }}
   database:
-    type: ${DBTYPE}
-    version: ${DBVERSION}
+    type: ${DBTYPE:-mariadb}
+    version: ${DBVERSION:-10.4}
   docroot: {{ dig "web" "locations" "/" "root" "notfound" .platformapp }}
   web_environment:
   # TODO: Review which of these matters and which can be dummied up

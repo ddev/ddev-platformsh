@@ -192,15 +192,9 @@ post_install_actions:
   relationships+=($(./generate_elasticsearch_relationship.sh | base64))
   {{ end }}
 
-  echo "Number of relationships=${#relationships[@]}"
-  PLATFORM_RELATIONSHIPS="$(for item in ${relationships[@]}; do printf $item | base64 -d; printf ",\n"; done | base64)"
-  printf PLATFORM_RELATIONSHIPS=$(echo $PLATFORM_RELATIONSHIPS | base64 -d)
-  #printf '{'; 
-  #for r in ${relationships}; do 
-  #  printf "r=$(echo $r | base64 -d),\n"
-  #done; 
-  #printf ' }'
-  #set +x
+  #echo "Number of relationships=${#relationships[@]}"
+  PLATFORM_RELATIONSHIPS="$((echo '{'; for r in ${relationships[@]::${#relationships[@]}-1}; do echo $r | base64 -d; printf ', \n'; done; echo ${relationships[@]: -1:1} | base64 -d; echo ' }') | base64)"
+  #printf "PLATFORM_RELATIONSHIPS=$(echo $PLATFORM_RELATIONSHIPS | base64 -d)"
   
   if [ -f config.platformsh.yaml ] && ! grep '#ddev-generated' config.platformsh.yaml; then
     echo "Existing config.platformsh.yaml does not have #ddev-generated, so can't be updated"

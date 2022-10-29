@@ -15,11 +15,13 @@ case $dbtype in
   mariadb* | mysql*)
     dbscheme="mysql"
     dbport=3306
+    rel="mysql"
     ;;
 
   postgres*)
     dbscheme="pgsql"
     dbport=5432
+    rel="pgsql"
     ;;
   default)
     printf "no recognized dbtype: '${dbtype}'" && exit 1
@@ -38,7 +40,7 @@ read -r -d '' db_stanza <<DB_EOF
     "public": false,
     "cluster": "dummyval",
     "host": "db",
-    "rel": "mysql",
+    "rel": "${rel}",
     "query": {
       "is_master": true
     },

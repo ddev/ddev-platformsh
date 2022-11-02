@@ -38,7 +38,7 @@ read -r -d '' db_stanza <<DB_EOF
     "ip": "169.254.118.116",
     "hostname": "db",
     "public": false,
-    "cluster": "dummyval",
+    "cluster": "ddev-dummy-cluster",
     "host": "db",
     "rel": "${rel}",
     "query": {

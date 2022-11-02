@@ -12,7 +12,7 @@ read -r -d '' redis_stanza <<ELASTICSEARCH_EOF
       "ip": "169.254.158.91",
       "hostname": "elasticsearch",
       "public": false,
-      "cluster": "6ez5tx3nxrqy4-main-bvxea6i",
+      "cluster": "ddev-dummy-cluster",
       "host": "elasticsearch",
       "rel": "elasticsearch",
       "query": {},

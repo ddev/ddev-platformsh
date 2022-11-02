@@ -12,7 +12,7 @@ read -r -d '' redis_stanza <<REDIS_EOF
       "ip": "169.254.16.113",
       "hostname": "redis",
       "public": false,
-      "cluster": "cojj67jzpv5vk-main-bvxea6i",
+      "cluster": "ddev-dummy-cluster",
       "host": "redis",
       "rel": "redis",
       "query": {},

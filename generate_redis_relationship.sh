@@ -9,7 +9,7 @@ read -r -d '' redis_stanza <<REDIS_EOF
       "scheme": "redis",
       "service": "cache",
       "fragment": null,
-      "ip": "169.254.16.113",
+    "ip": "255.255.255.255",
       "hostname": "redis",
       "public": false,
       "cluster": "ddev-dummy-cluster",

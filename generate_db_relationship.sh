@@ -35,7 +35,7 @@ read -r -d '' db_stanza <<DB_EOF
     "scheme": "${dbscheme}",
     "service": "${dbservice}",
     "fragment": null,
-    "ip": "169.254.118.116",
+    "ip": "255.255.255.255",
     "hostname": "db",
     "public": false,
     "cluster": "ddev-dummy-cluster",

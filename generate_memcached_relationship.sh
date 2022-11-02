@@ -6,7 +6,7 @@ read -r -d '' memcached_stanza <<MEMCACHED_EOF
 "cache": [
   {
     "service": "memcached",
-    "ip": "169.254.30.132",
+    "ip": "255.255.255.255",
     "hostname": "memcached",
     "cluster": "ddev-dummy-cluster",
     "host": "memcached",

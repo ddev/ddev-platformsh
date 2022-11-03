@@ -152,9 +152,11 @@ pre_install_actions:
       # Provide all PHP extensions but blackfire, which has different pattern (blackfire-php) and is already installed
       # and pdo_pgsql, which is already installed
       {{ $phpversion := trimPrefix "php:" .platformapp.type }}
+      webimage_extra_packages:
+      - figlet
       {{ if .platformapp.runtime.extensions }}
       {{ $phpextensions := without .platformapp.runtime.extensions "blackfire" "pdo_pgsql" "sodium" }}
-      webimage_extra_packages:{{range $extension := $phpextensions }}
+      {{range $extension := $phpextensions }}
       - php{{$phpversion}}-{{$extension}}{{end}}
       {{ if has "sodium" .platformapp.runtime.extensions }}
       - php-sodium

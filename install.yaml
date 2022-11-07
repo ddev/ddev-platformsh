@@ -208,6 +208,19 @@ post_install_actions:
   disable_settings_management: true
   {{ $phpversion := trimPrefix "php:" .platformapp.type }}
   php_version: {{ $phpversion }}
+  webimage_extra_packages:
+  - figlet
+  # Provide all PHP extensions but blackfire, which has different pattern (blackfire-php) and is already installed
+  # and pdo_pgsql, which is already installed
+  {{ $phpversion := trimPrefix "php:" .platformapp.type }}
+  {{ if .platformapp.runtime.extensions }}
+  {{ $phpextensions := without .platformapp.runtime.extensions "blackfire" "pdo_pgsql" "sodium" }}
+  {{range $extension := $phpextensions }}
+  - php{{$phpversion}}-{{$extension}}{{end}}
+  {{ if has "sodium" .platformapp.runtime.extensions }}
+  - php-sodium
+  {{end}}
+
   database:
     type: ${DBTYPE:-mariadb}
     version: ${DBVERSION:-10.4}
@@ -227,16 +240,6 @@ post_install_actions:
   {{ if .platformapp.variables.env }}
   {{ range $key, $value := .platformapp.variables.env }}
   - "{{$key}}={{$value}}"{{ end }}{{ end }}
-  # Provide all PHP extensions but blackfire, which has different pattern (blackfire-php) and is already installed
-  # and pdo_pgsql, which is already installed
-  {{ $phpversion := trimPrefix "php:" .platformapp.type }}
-  {{ if .platformapp.runtime.extensions }}
-  {{ $phpextensions := without .platformapp.runtime.extensions "blackfire" "pdo_pgsql" "sodium" }}
-  webimage_extra_packages:{{range $extension := $phpextensions }}
-  - php{{$phpversion}}-{{$extension}}{{end}}
-  {{ if has "sodium" .platformapp.runtime.extensions }}
-  - php-sodium
-  {{end}}
   {{ end }}
   
   # Add pip only if we have python3 dependencies

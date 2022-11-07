@@ -1,5 +1,17 @@
 name: ddev-platformsh
 
+project_files:
+  - web-build/Dockerfile.platformsh
+  - homeadditions/.bashrc.d/platformsh-environment.sh
+  - platformsh/.gitignore
+  - platformsh/generate_db_relationship.sh
+  - platformsh/generate_elasticsearch_relationship.sh
+  - platformsh/generate_memcached_relationship.sh
+  - platformsh/generate_redis_relationship.sh
+
+global_files:
+  - commands/web/platform
+
 pre_install_actions:
     # Make sure we have a ddev version that can support what we do here
   - |
@@ -89,131 +101,6 @@ pre_install_actions:
       {{ end }}
 
 
-# Write a config.platformsh.yaml based on calculated values, php version, database, docroot
-  - |
-      #ddev-nodisplay
-      # set -x
-      platform_routes=$(cat <<-"ENDROUTES"
-      {
-      "${DDEV_PRIMARY_URL}": {
-        "primary": true,
-        "id": null,
-        "production_url": "${DDEV_PRIMARY_URL}",
-        "attributes": {},
-        "upstream": "drupal",
-        "type": "upstream",
-        "original_url": "https://{default}/"  }
-      }
-      ENDROUTES
-      )
-      PLATFORM_ROUTES="$( if base64 --version >/dev/null 2>&1; then echo -n ${platform_routes} | base64 -w0; else echo -n ${platform_routes} | base64; fi)"
-      PLATFORM_PROJECT_ENTROPY="$(echo $RANDOM | shasum -a 256 | awk '{print $1}')"
-    
-      if [ -f .ddev/config.platformsh.yaml ] && ! grep '#ddev-generated' .ddev/config.platformsh.yaml; then
-        echo "Existing .ddev/config.platformsh.yaml does not have #ddev-generated, so can't be updated"
-        exit 2
-      fi
-      rm -f .ddev/config.platformsh.yaml
-  
-      cat <<-EOF >.ddev/config.platformsh.yaml
-      # #ddev-generated
-      # Generated configuration based on platform.sh project configuration
-      {{ $dbtype := "" }}
-      {{/* TODO: Is this valid to look for "database" stanza, or is this free-form? */}}
-      {{ if .platformapp.relationships.database }}
-      {{ $relationship_name := index (split ":" .platformapp.relationships.database) "_0" }} 
-      # relationship_name={{ $relationship_name }}
-      {{ $dbtype = replace "postgresql" "postgres" (get (get .services $relationship_name) "type") }}
-      {{ $dbtype = regexReplaceAll "^mysql:" $dbtype "mariadb:" }}
-      {{ $dbtype = regexReplaceAll "^oracle-mysql:" $dbtype "mysql:" }}
-      {{ end }}
-      {{ $phpversion := trimPrefix "php:" .platformapp.type }}
-      php_version: {{ $phpversion }}
-      {{ if .platformapp.relationships.database }}
-      database:
-        type: {{ regexReplaceAll ":.*$" $dbtype "" }}
-        version: {{ regexReplaceAll "^.*:" $dbtype "" }}
-      {{ end }}
-      docroot: {{ dig "web" "locations" "/" "root" "notfound" .platformapp }}
-      web_environment:
-      # TODO: Review which of these matters and which can be dummied up
-      - "PLATFORM_MOUNTS={{ range $key, $value := .platformapp.mounts }}{{ $key }} {{ end }}"
-      - "PLATFORM_APP_DIR=/var/www/html"
-      - "PLATFORM_PROJECT_ENTROPY=${PLATFORM_PROJECT_ENTROPY}"
-      # Consider commit hash for PLATFORM_TREE_ID
-      - "PLATFORM_TREE_ID=2dc356f2fea13ef683f9adc5fc5bd28e05ad992a"
-      - "PLATFORM_DIR=/var/www/html"
-      - "PLATFORM_ROUTES=${PLATFORM_ROUTES}"
-      - "PLATFORM_VARIABLES=e30="
-      - "PATH=$PATH:/var/www/html/.global/bin"
-      {{ if .platformapp.variables.env }}
-      {{ range $key, $value := .platformapp.variables.env }}
-      - "{{$key}}={{$value}}"{{ end }}{{ end }}
-      # Provide all PHP extensions but blackfire, which has different pattern (blackfire-php) and is already installed
-      # and pdo_pgsql, which is already installed
-      {{ $phpversion := trimPrefix "php:" .platformapp.type }}
-      {{ if .platformapp.runtime.extensions }}
-      {{ $phpextensions := without .platformapp.runtime.extensions "blackfire" "pdo_pgsql" "sodium" }}
-      webimage_extra_packages:{{range $extension := $phpextensions }}
-      - php{{$phpversion}}-{{$extension}}{{end}}
-      {{ if has "sodium" .platformapp.runtime.extensions }}
-      - php-sodium
-      {{end}}
-      {{ end }}
-    
-      # Add pip only if we have python3 dependencies
-      {{ if .platformapp.dependencies.python3 }}
-      - python3-pip
-      {{ end }}
-      EOF
-    
-      # Because "ENDOFHOOKS" is quoted here, no variable expansion occurs
-      # so everything is left alone.
-      cat <<-"ENDOFHOOKS" >>.ddev/config.platformsh.yaml
-    
-      hooks:
-        post-start:
-        - exec: platform self:update -qy --no-major || true
-        - exec: '[ ! -z "$PLATFORMSH_CLI_TOKEN" ] && platform ssh-cert:load  -y'
-
-      {{ if eq .platformapp.build.flavor "composer" }}
-        - composer: install
-      {{ end }}
-
-      {{ if .platformapp.hooks.build }}
-        # platformsh build hooks
-      {{ $noblanks := regexReplaceAll "\n\n*" .platformapp.hooks.build "\n" }}
-        - exec: |
-      {{ indent 6 $noblanks }}
-      {{ end }}
-
-      {{ if .platformapp.hooks.deploy }}
-        # platformsh deploy hooks
-      {{ $noblanks := regexReplaceAll "\n\n*" .platformapp.hooks.deploy "\n" }}
-        - exec: |
-      {{ indent 6 $noblanks }}
-      {{ end }}
-
-      {{ if .platformapp.hooks.post_deploy }}
-        # platformsh post_deploy hooks
-      {{ $noblanks := regexReplaceAll "\n\n*" .platformapp.hooks.post_deploy "\n" }}
-        - exec: |
-      {{ indent 6 $noblanks }}
-      {{ end }}
-
-      {{ if has "blackfire" .platformapp.runtime.extensions }}
-        - exec: phpenmod blackfire
-      {{ end }}
-
-      ENDOFHOOKS
-
-project_files:
-  - web-build/Dockerfile.platformsh
-  - homeadditions/.bashrc.d/platformsh-environment.sh
-  - providers/platform.yaml
-
-global_files:
-  - commands/web/platform
 
 post_install_actions:
 # If redis is configured, do a ddev get to get it
@@ -261,6 +148,142 @@ post_install_actions:
       mkdir -p .drush
       ;;
   esac
+
+# Write a config.platformsh.yaml based on calculated values, php version, database, docroot
+- |
+  #ddev-nodisplay
+  # set -x
+  platform_routes=$(cat <<-"ENDROUTES"
+  {
+  "${DDEV_PRIMARY_URL}": {
+    "primary": true,
+    "id": null,
+    "production_url": "${DDEV_PRIMARY_URL}",
+    "attributes": {},
+    "upstream": "drupal",
+    "type": "upstream",
+    "original_url": "https://{default}/"  }
+  }
+  ENDROUTES
+  )
+  PLATFORM_ROUTES="$( if base64 --version >/dev/null 2>&1; then echo -n ${platform_routes} | base64 -w0; else echo -n ${platform_routes} | base64; fi)"
+  PLATFORM_PROJECT_ENTROPY="$(echo $RANDOM | shasum -a 256 | awk '{print $1}')"
+  export relationships=()
+  {{ $dbtype := "" }}
+  {{ if .platformapp.relationships.database }}
+  {{ $relationship_name := index (split ":" .platformapp.relationships.database) "_0" }} 
+  {{ $dbtype = replace "postgresql" "postgres" (get (get .services $relationship_name) "type") }}
+  {{ $dbtype = regexReplaceAll "^mysql:" $dbtype "mariadb:" }}
+  {{ $dbtype = regexReplaceAll "^oracle-mysql:" $dbtype "mysql:" }}
+  export DBTYPE={{ regexReplaceAll ":.*$" $dbtype "" }}
+  export DBVERSION={{ regexReplaceAll "^.*:" $dbtype "" }}
+  relationships+=($(./platformsh/generate_db_relationship.sh '{{ $relationship_name }}' '{{ $dbtype }}' | base64))
+  #printf "relationships length after db=${#relationships[@]}\nrelationships value=$(echo $relationships | base64 -d)"
+  {{ end }}
+  
+  {{ if and .services.cache.type (hasPrefix "redis" .services.cache.type) }}
+  relationships+=($(./platformsh/generate_redis_relationship.sh | base64))
+  #printf "relationships length after redis=${#relationships[@]}\nrelationships value=$(echo $relationships | base64 -d)"
+  {{ end }}
+  {{ if and .services.cache.type (hasPrefix "memcached" .services.cache.type) }}
+  relationships+=($(./platformsh/generate_memcached_relationship.sh | base64))
+  {{ end }}
+  {{ if and .services.search.type (hasPrefix "elasticsearch" .services.search.type) }}
+  relationships+=($(./platformsh/generate_elasticsearch_relationship.sh | base64))
+  {{ end }}
+
+  #echo "Number of relationships=${#relationships[@]}"
+  PLATFORM_RELATIONSHIPS="$((echo '{'; for r in ${relationships[@]::${#relationships[@]}-1}; do echo $r | base64 -d; printf ', \n'; done; echo ${relationships[@]: -1:1} | base64 -d; echo ' }') | base64)"
+  #printf "PLATFORM_RELATIONSHIPS=$(echo $PLATFORM_RELATIONSHIPS | base64 -d)"
+  
+  if [ -f config.platformsh.yaml ] && ! grep '#ddev-generated' config.platformsh.yaml; then
+    echo "Existing config.platformsh.yaml does not have #ddev-generated, so can't be updated"
+    exit 2
+  fi
+  rm -f .config.platformsh.yaml
+  
+  cat <<-EOF >config.platformsh.yaml
+  # #ddev-generated
+  # Generated configuration based on platform.sh project configuration
+  disable_settings_management: true
+  {{ $phpversion := trimPrefix "php:" .platformapp.type }}
+  php_version: {{ $phpversion }}
+  database:
+    type: ${DBTYPE:-mariadb}
+    version: ${DBVERSION:-10.4}
+  docroot: {{ dig "web" "locations" "/" "root" "notfound" .platformapp }}
+  web_environment:
+  # TODO: Review which of these matters and which can be dummied up
+  - "PLATFORM_RELATIONSHIPS=${PLATFORM_RELATIONSHIPS}"
+  - "PLATFORM_MOUNTS={{ range $key, $value := .platformapp.mounts }}{{ $key }} {{ end }}"
+  - "PLATFORM_APP_DIR=/var/www/html"
+  - "PLATFORM_PROJECT_ENTROPY=${PLATFORM_PROJECT_ENTROPY}"
+  # Consider commit hash for PLATFORM_TREE_ID
+  - "PLATFORM_TREE_ID=2dc356f2fea13ef683f9adc5fc5bd28e05ad992a"
+  - "PLATFORM_DIR=/var/www/html"
+  - "PLATFORM_ROUTES=${PLATFORM_ROUTES}"
+  - "PLATFORM_VARIABLES=e30="
+  - "PATH=$PATH:/var/www/html/.global/bin"
+  {{ if .platformapp.variables.env }}
+  {{ range $key, $value := .platformapp.variables.env }}
+  - "{{$key}}={{$value}}"{{ end }}{{ end }}
+  # Provide all PHP extensions but blackfire, which has different pattern (blackfire-php) and is already installed
+  # and pdo_pgsql, which is already installed
+  {{ $phpversion := trimPrefix "php:" .platformapp.type }}
+  {{ if .platformapp.runtime.extensions }}
+  {{ $phpextensions := without .platformapp.runtime.extensions "blackfire" "pdo_pgsql" "sodium" }}
+  webimage_extra_packages:{{range $extension := $phpextensions }}
+  - php{{$phpversion}}-{{$extension}}{{end}}
+  {{ if has "sodium" .platformapp.runtime.extensions }}
+  - php-sodium
+  {{end}}
+  {{ end }}
+  
+  # Add pip only if we have python3 dependencies
+  {{ if .platformapp.dependencies.python3 }}
+  - python3-pip
+  {{ end }}
+  EOF
+  
+  # Because "ENDOFHOOKS" is quoted here, no variable expansion occurs
+  # so everything is left alone.
+  cat <<-"ENDOFHOOKS" >>config.platformsh.yaml
+  
+  hooks:
+    post-start:
+    - exec: platform self:update -qy --no-major || true
+    - exec: '[ ! -z "$PLATFORMSH_CLI_TOKEN" ] && platform ssh-cert:load  -y'
+  
+  {{ if eq .platformapp.build.flavor "composer" }}
+    - composer: install
+  {{ end }}
+  
+  {{ if .platformapp.hooks.build }}
+    # platformsh build hooks
+  {{ $noblanks := regexReplaceAll "\n\n*" .platformapp.hooks.build "\n" }}
+    - exec: |
+  {{ indent 6 $noblanks }}
+  {{ end }}
+  
+  {{ if .platformapp.hooks.deploy }}
+    # platformsh deploy hooks
+  {{ $noblanks := regexReplaceAll "\n\n*" .platformapp.hooks.deploy "\n" }}
+    - exec: |
+  {{ indent 6 $noblanks }}
+  {{ end }}
+  
+  {{ if .platformapp.hooks.post_deploy }}
+    # platformsh post_deploy hooks
+  {{ $noblanks := regexReplaceAll "\n\n*" .platformapp.hooks.post_deploy "\n" }}
+    - exec: |
+  {{ indent 6 $noblanks }}
+  {{ end }}
+  
+  {{ if has "blackfire" .platformapp.runtime.extensions }}
+    - exec: phpenmod blackfire
+  {{ end }}
+  
+  ENDOFHOOKS
 
 yaml_read_files:
   platformapp: .platform.app.yaml

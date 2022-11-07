@@ -3,11 +3,11 @@ name: ddev-platformsh
 project_files:
   - web-build/Dockerfile.platformsh
   - homeadditions/.bashrc.d/platformsh-environment.sh
-  - providers/platform.yaml
-  - generate_db_relationship.sh
-  - generate_elasticsearch_relationship.sh
-  - generate_memcached_relationship.sh
-  - generate_redis_relationship.sh
+  - platformsh/.gitignore
+  - platformsh/generate_db_relationship.sh
+  - platformsh/generate_elasticsearch_relationship.sh
+  - platformsh/generate_memcached_relationship.sh
+  - platformsh/generate_redis_relationship.sh
 
 global_files:
   - commands/web/platform
@@ -177,19 +177,19 @@ post_install_actions:
   {{ $dbtype = regexReplaceAll "^oracle-mysql:" $dbtype "mysql:" }}
   export DBTYPE={{ regexReplaceAll ":.*$" $dbtype "" }}
   export DBVERSION={{ regexReplaceAll "^.*:" $dbtype "" }}
-  relationships+=($(./generate_db_relationship.sh '{{ $relationship_name }}' '{{ $dbtype }}' | base64))
+  relationships+=($(./platformsh/generate_db_relationship.sh '{{ $relationship_name }}' '{{ $dbtype }}' | base64))
   #printf "relationships length after db=${#relationships[@]}\nrelationships value=$(echo $relationships | base64 -d)"
   {{ end }}
   
   {{ if and .services.cache.type (hasPrefix "redis" .services.cache.type) }}
-  relationships+=($(./generate_redis_relationship.sh | base64))
+  relationships+=($(./platformsh/generate_redis_relationship.sh | base64))
   #printf "relationships length after redis=${#relationships[@]}\nrelationships value=$(echo $relationships | base64 -d)"
   {{ end }}
   {{ if and .services.cache.type (hasPrefix "memcached" .services.cache.type) }}
-  relationships+=($(./generate_memcached_relationship.sh | base64))
+  relationships+=($(./platformsh/generate_memcached_relationship.sh | base64))
   {{ end }}
   {{ if and .services.search.type (hasPrefix "elasticsearch" .services.search.type) }}
-  relationships+=($(./generate_elasticsearch_relationship.sh | base64))
+  relationships+=($(./platformsh/generate_elasticsearch_relationship.sh | base64))
   {{ end }}
 
   #echo "Number of relationships=${#relationships[@]}"

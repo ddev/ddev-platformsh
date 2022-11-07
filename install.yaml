@@ -212,6 +212,23 @@ post_install_actions:
     type: ${DBTYPE:-mariadb}
     version: ${DBVERSION:-10.4}
   docroot: {{ dig "web" "locations" "/" "root" "notfound" .platformapp }}
+  webimage_extra_packages:
+  - figlet
+  {{/*# Provide all PHP extensions but blackfire, which has different pattern (blackfire-php) and is already installed */}}
+  {{/*# and pdo_pgsql, which is already installed */}}
+  {{ $phpversion := trimPrefix "php:" .platformapp.type }}
+  {{ if .platformapp.runtime.extensions }}
+  {{ $phpextensions := without .platformapp.runtime.extensions "blackfire" "pdo_pgsql" "sodium" }}
+  {{range $extension := $phpextensions }}
+  - php{{$phpversion}}-{{$extension}}{{end}}
+  {{ if has "sodium" .platformapp.runtime.extensions }}
+  - php-sodium
+  {{end}}
+  {{/* # Add pip only if we have python3 dependencies */}}
+  {{ if .platformapp.dependencies.python3 }}
+  - python3-pip
+  {{ end }}
+
   web_environment:
   # TODO: Review which of these matters and which can be dummied up
   - "PLATFORM_RELATIONSHIPS=${PLATFORM_RELATIONSHIPS}"
@@ -227,22 +244,8 @@ post_install_actions:
   {{ if .platformapp.variables.env }}
   {{ range $key, $value := .platformapp.variables.env }}
   - "{{$key}}={{$value}}"{{ end }}{{ end }}
-  # Provide all PHP extensions but blackfire, which has different pattern (blackfire-php) and is already installed
-  # and pdo_pgsql, which is already installed
-  {{ $phpversion := trimPrefix "php:" .platformapp.type }}
-  {{ if .platformapp.runtime.extensions }}
-  {{ $phpextensions := without .platformapp.runtime.extensions "blackfire" "pdo_pgsql" "sodium" }}
-  webimage_extra_packages:{{range $extension := $phpextensions }}
-  - php{{$phpversion}}-{{$extension}}{{end}}
-  {{ if has "sodium" .platformapp.runtime.extensions }}
-  - php-sodium
-  {{end}}
   {{ end }}
   
-  # Add pip only if we have python3 dependencies
-  {{ if .platformapp.dependencies.python3 }}
-  - python3-pip
-  {{ end }}
   EOF
   
   # Because "ENDOFHOOKS" is quoted here, no variable expansion occurs

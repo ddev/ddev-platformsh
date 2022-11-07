@@ -13,7 +13,6 @@ teardown() {
   load per_test.sh
   template="wordpress-composer"
   for source in $PROJECT_SOURCE platformsh/ddev-platformsh; do
-    echo "# ddev get $source with template ${template} PROJNAME=${PROJNAME} in ${TESTDIR} ($(pwd))" >&3
     per_test_setup
 
     run ddev exec -s db 'echo ${DDEV_DATABASE}'

@@ -14,7 +14,6 @@ teardown() {
   load per_test.sh
   template="laravel"
   for source in $PROJECT_SOURCE platformsh/ddev-platformsh; do
-    echo "# doing ddev get $source with template ${template} PROJNAME=${PROJNAME} in ${TESTDIR} ($(pwd))" >&3
     per_test_setup
 
     run ddev exec "php --version | awk 'NR==1 { sub(/\.[0-9]+$/, \"\", \$2); print \$2 }'"

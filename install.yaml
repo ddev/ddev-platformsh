@@ -167,7 +167,7 @@ post_install_actions:
   ENDROUTES
   )
   BASE64_ENCODE="base64"
-  if base64 -w 0 </dev/null >/dev/null 2>&1; then BASE64ENCODE="base64 -w 0"; fi
+  if base64 -w 0 </dev/null >/dev/null 2>&1; then BASE64_ENCODE="base64 -w 0"; fi
   echo BASE64_ENCODE=${BASE64_ENCODE}
   PLATFORM_ROUTES="$(echo -n ${platform_routes} | ${BASE64_ENCODE})"
   PLATFORM_PROJECT_ENTROPY="$(echo $RANDOM | shasum -a 256 | awk '{print $1}')"

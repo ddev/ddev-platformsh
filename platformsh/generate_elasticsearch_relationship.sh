@@ -2,14 +2,14 @@
 
 #ddev-generated
 
-read -r -d '' redis_stanza <<ELASTICSEARCH_EOF
+read -r -d '' elasticsearch_stanza <<ELASTICSEARCH_EOF
   "essearch": [
     {
       "username": null,
       "scheme": "http",
       "service": "search",
       "fragment": null,
-    "ip": "255.255.255.255",
+      "ip": "255.255.255.255",
       "hostname": "elasticsearch",
       "public": false,
       "cluster": "ddev-dummy-cluster",
@@ -25,4 +25,4 @@ read -r -d '' redis_stanza <<ELASTICSEARCH_EOF
   ]
 ELASTICSEARCH_EOF
 
-printf "$redis_stanza"
+printf "$elasticsearch_stanza"

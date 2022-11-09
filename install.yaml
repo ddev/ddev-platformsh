@@ -166,7 +166,10 @@ post_install_actions:
   }
   ENDROUTES
   )
-  PLATFORM_ROUTES="$( if base64 --version >/dev/null 2>&1; then echo -n ${platform_routes} | base64 -w0; else echo -n ${platform_routes} | base64; fi)"
+  BASE64_ENCODE="base64"
+  if base64 -w 0 </dev/null >/dev/null 2>&1; then BASE64_ENCODE="base64 -w 0"; fi
+  echo BASE64_ENCODE=${BASE64_ENCODE}
+  PLATFORM_ROUTES="$(echo -n ${platform_routes} | ${BASE64_ENCODE})"
   PLATFORM_PROJECT_ENTROPY="$(echo $RANDOM | shasum -a 256 | awk '{print $1}')"
   export relationships=()
   {{ $dbtype := "" }}
@@ -177,23 +180,23 @@ post_install_actions:
   {{ $dbtype = regexReplaceAll "^oracle-mysql:" $dbtype "mysql:" }}
   export DBTYPE={{ regexReplaceAll ":.*$" $dbtype "" }}
   export DBVERSION={{ regexReplaceAll "^.*:" $dbtype "" }}
-  relationships+=($(./platformsh/generate_db_relationship.sh '{{ $relationship_name }}' '{{ $dbtype }}' | base64))
+  relationships+=($(./platformsh/generate_db_relationship.sh '{{ $relationship_name }}' '{{ $dbtype }}' | ${BASE64_ENCODE}))
   #printf "relationships length after db=${#relationships[@]}\nrelationships value=$(echo $relationships | base64 -d)"
   {{ end }}
   
   {{ if and .services.cache.type (hasPrefix "redis" .services.cache.type) }}
-  relationships+=($(./platformsh/generate_redis_relationship.sh | base64))
+  relationships+=($(./platformsh/generate_redis_relationship.sh | ${BASE64_ENCODE}))
   #printf "relationships length after redis=${#relationships[@]}\nrelationships value=$(echo $relationships | base64 -d)"
   {{ end }}
   {{ if and .services.cache.type (hasPrefix "memcached" .services.cache.type) }}
-  relationships+=($(./platformsh/generate_memcached_relationship.sh | base64))
+  relationships+=($(./platformsh/generate_memcached_relationship.sh | ${BASE64_ENCODE}))
   {{ end }}
   {{ if and .services.search.type (hasPrefix "elasticsearch" .services.search.type) }}
-  relationships+=($(./platformsh/generate_elasticsearch_relationship.sh | base64))
+  relationships+=($(./platformsh/generate_elasticsearch_relationship.sh | ${BASE64_ENCODE}))
   {{ end }}
 
   #echo "Number of relationships=${#relationships[@]}"
-  PLATFORM_RELATIONSHIPS="$((echo '{'; for r in ${relationships[@]::${#relationships[@]}-1}; do echo $r | base64 -d; printf ', \n'; done; echo ${relationships[@]: -1:1} | base64 -d; echo ' }') | base64)"
+  PLATFORM_RELATIONSHIPS="$((echo '{'; for r in ${relationships[@]::${#relationships[@]}-1}; do echo $r | base64 -d; printf ', \n'; done; echo ${relationships[@]: -1:1} | base64 -d; echo ' }') | ${BASE64_ENCODE})"
   #printf "PLATFORM_RELATIONSHIPS=$(echo $PLATFORM_RELATIONSHIPS | base64 -d)"
   
   if [ -f config.platformsh.yaml ] && ! grep '#ddev-generated' config.platformsh.yaml; then
@@ -219,18 +222,17 @@ post_install_actions:
   {{ $phpversion := trimPrefix "php:" .platformapp.type }}
   {{ if .platformapp.runtime.extensions }}
   {{ $phpextensions := without .platformapp.runtime.extensions "blackfire" "pdo_pgsql" "sodium" }}
-  {{range $extension := $phpextensions }}
+    {{range $extension := $phpextensions }}
   - php{{$phpversion}}-{{$extension}}{{end}}
   {{ if has "sodium" .platformapp.runtime.extensions }}
   - php-sodium
+  {{end}}
   {{end}}
   {{/* # Add pip only if we have python3 dependencies */}}
   {{ if .platformapp.dependencies.python3 }}
   - python3-pip
   {{ end }}
-
   web_environment:
-  # TODO: Review which of these matters and which can be dummied up
   - "PLATFORM_RELATIONSHIPS=${PLATFORM_RELATIONSHIPS}"
   - "PLATFORM_MOUNTS={{ range $key, $value := .platformapp.mounts }}{{ $key }} {{ end }}"
   - "PLATFORM_APP_DIR=/var/www/html"
@@ -244,7 +246,6 @@ post_install_actions:
   {{ if .platformapp.variables.env }}
   {{ range $key, $value := .platformapp.variables.env }}
   - "{{$key}}={{$value}}"{{ end }}{{ end }}
-  {{ end }}
   
   EOF
   

@@ -219,18 +219,17 @@ post_install_actions:
   {{ $phpversion := trimPrefix "php:" .platformapp.type }}
   {{ if .platformapp.runtime.extensions }}
   {{ $phpextensions := without .platformapp.runtime.extensions "blackfire" "pdo_pgsql" "sodium" }}
-  {{range $extension := $phpextensions }}
+    {{range $extension := $phpextensions }}
   - php{{$phpversion}}-{{$extension}}{{end}}
   {{ if has "sodium" .platformapp.runtime.extensions }}
   - php-sodium
+  {{end}}
   {{end}}
   {{/* # Add pip only if we have python3 dependencies */}}
   {{ if .platformapp.dependencies.python3 }}
   - python3-pip
   {{ end }}
-
   web_environment:
-  # TODO: Review which of these matters and which can be dummied up
   - "PLATFORM_RELATIONSHIPS=${PLATFORM_RELATIONSHIPS}"
   - "PLATFORM_MOUNTS={{ range $key, $value := .platformapp.mounts }}{{ $key }} {{ end }}"
   - "PLATFORM_APP_DIR=/var/www/html"
@@ -244,7 +243,6 @@ post_install_actions:
   {{ if .platformapp.variables.env }}
   {{ range $key, $value := .platformapp.variables.env }}
   - "{{$key}}={{$value}}"{{ end }}{{ end }}
-  {{ end }}
   
   EOF
   

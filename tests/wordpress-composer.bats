@@ -17,8 +17,12 @@ teardown() {
 
     run ddev exec -s db 'echo ${DDEV_DATABASE}'
     assert_output "mariadb:10.4"
+    run ddev exec 'echo $PLATFORM_RELATIONSHIPS | base64 -d | jq -r ".database[0].username"'
+    assert_output "db"
     run ddev exec "php --version | awk 'NR==1 { sub(/\.[0-9]+$/, \"\", \$2); print \$2 }'"
     assert_output "7.4"
+    run ddev exec ls wordpress/wp-config.php
+    assert_output "wordpress/wp-config.php"
     ddev describe -j >describe.json
     run  jq -r .raw.docroot <describe.json
     assert_output "wordpress"

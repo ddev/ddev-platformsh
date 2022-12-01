@@ -171,7 +171,7 @@ post_install_actions:
         export DBTYPE={{ regexReplaceAll ":.*$" $dbtype "" }}
         export DBVERSION={{ regexReplaceAll "^.*:" $dbtype "" }}
         if [ "${current_db_version}" != "" ] && [ ">{{ $dbtype }}<" != ">${current_db_version}<" ]; then
-          printf "There is an existing database in this project that doesn\'t match the upstream database type.\n Please use 'ddev delete' to delete the existing database and retry, or try 'ddev debug migrate-database {{ $dbtype }}' to migrate the database.\n"
+          printf "There is an existing database in this project that doesn\'t match the upstream database type.\n Please use 'ddev delete' to delete the existing database and retry, or try 'ddev debug migrate-database {{ $dbtype }}' to migrate the database.\n" >&2
           false
         fi
         relationships+=($(./platformsh/generate_db_relationship.sh '{{ $relationship_name }}' '{{ $dbtype }}' '{{ $relationship_name }}' | ${BASE64_ENCODE}))

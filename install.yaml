@@ -156,7 +156,7 @@ post_install_actions:
     {{ $_ := set $service_def "version" $service_type._1 }}
     #echo {{ $service_def }}
     
-    {{ $supported_db_types := list "postgresql" "mariadb" "mysql" }}
+    {{ $supported_db_types := list "postgresql" "mysql" "oracle-mysql" }}
     {{/* For supported services, key is the service name and value is the corresponding add-on to install if applicable (nil if not needed) */}}
     {{ $supported_services := dict "redis" "drud/ddev-redis" "memcached" "drud/ddev-memcached" "elasticsearch" "drud/ddev-elasticsearch" }}
     {{ if $supported_db_types | has $service_def.type }}

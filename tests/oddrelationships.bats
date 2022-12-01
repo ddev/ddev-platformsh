@@ -28,6 +28,11 @@ teardown() {
     assert_output "mysql:8.0"
     run jq -r .raw.services.redis.status </tmp/describe.json
     assert_output "running"
+    run jq -r .raw.services.elasticsearch.status </tmp/describe.json
+    assert_output "running"
+    run jq -r .raw.services.memcached.status </tmp/describe.json
+    assert_output "running"
+
     popd >/dev/null
     per_test_teardown
   done

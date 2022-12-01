@@ -10,8 +10,9 @@ teardown() {
   load teardown.sh
 }
 
-@test "oddrelationships" {
-  template="oddrelationships"
+# mariadb is called mysql in platform.sh
+@test "mysql" {
+  template="mysql"
   load per_test.sh
   for source in $PROJECT_SOURCE; do
     rm -rf ${TESTDIR} && mkdir -p ${TESTDIR}
@@ -25,14 +26,7 @@ teardown() {
     ddev start -y >/dev/null
     DDEV_DEBUG="" ddev describe -j >/tmp/describe.json
     run ddev exec -s db 'echo ${DDEV_DATABASE}'
-    assert_output "mysql:8.0"
-    run jq -r .raw.services.redis.status </tmp/describe.json
-    assert_output "running"
-    run jq -r .raw.services.elasticsearch.status </tmp/describe.json
-    assert_output "running"
-    run jq -r .raw.services.memcached.status </tmp/describe.json
-    assert_output "running"
-
+    assert_output "mariadb:10.3"
     popd >/dev/null
     per_test_teardown
   done

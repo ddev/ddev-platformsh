@@ -10,8 +10,8 @@ teardown() {
   load teardown.sh
 }
 
-@test "oddrelationships" {
-  template="oddrelationships"
+@test "oracle-mysql" {
+  template="oracle-mysql"
   load per_test.sh
   for source in $PROJECT_SOURCE; do
     rm -rf ${TESTDIR} && mkdir -p ${TESTDIR}
@@ -26,13 +26,6 @@ teardown() {
     DDEV_DEBUG="" ddev describe -j >/tmp/describe.json
     run ddev exec -s db 'echo ${DDEV_DATABASE}'
     assert_output "mysql:8.0"
-    run jq -r .raw.services.redis.status </tmp/describe.json
-    assert_output "running"
-    run jq -r .raw.services.elasticsearch.status </tmp/describe.json
-    assert_output "running"
-    run jq -r .raw.services.memcached.status </tmp/describe.json
-    assert_output "running"
-
     popd >/dev/null
     per_test_teardown
   done

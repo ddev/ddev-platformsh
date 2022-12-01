@@ -10,9 +10,8 @@ teardown() {
   load teardown.sh
 }
 
-# mariadb is called mysql in platform.sh
-@test "mysql" {
-  template="mysql"
+@test "mismatched-database" {
+  template="mismatched-database"
   load per_test.sh
   for source in $PROJECT_SOURCE; do
     rm -rf ${TESTDIR} && mkdir -p ${TESTDIR}
@@ -20,14 +19,12 @@ teardown() {
     pushd ${TESTDIR} >/dev/null
     ddev delete -Oy ${PROJNAME} >/dev/null 2>&1 || true
     echo "# doing ddev config --project-name=${PROJNAME}" >&3
-    ddev config --project-name=${PROJNAME} >/dev/null
-    echo "# doing ddev get $source with template ${template} PROJNAME=${PROJNAME} in ${TESTDIR} ($(pwd))" >&3
-    printf "x\nx\nx\n" | ddev get $source
+    ddev config --project-name=${PROJNAME} --database=mariadb:10.2 >/dev/null
     ddev start -y >/dev/null
-    DDEV_DEBUG="" ddev describe -j >/tmp/describe.json
-    run ddev exec -s db 'echo ${DDEV_DATABASE}'
-    assert_output "mariadb:10.5"
+    echo "# doing ddev get $source with template ${template} PROJNAME=${PROJNAME} in ${TESTDIR} ($(pwd))" >&3
+    printf 'x\nx\nx\n' | (ddev get $source 2>&1 || true) | grep "There is an existing database in this project"
     popd >/dev/null
+
     per_test_teardown
   done
 }

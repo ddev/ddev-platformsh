@@ -8,6 +8,7 @@
 
 export dbservice=$1
 export dbtype=$2
+export relationshipname=$3
 export dbscheme
 export dbport
 
@@ -29,7 +30,7 @@ case $dbtype in
 esac
 
 read -r -d '' db_stanza <<DB_EOF
-"database": [
+"${relationshipname}": [
   {
     "username": "db",
     "scheme": "${dbscheme}",

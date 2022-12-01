@@ -2,8 +2,10 @@
 
 #ddev-generated
 
+export relationshipname=$1
+
 read -r -d '' redis_stanza <<REDIS_EOF
-  "redis": [
+  "${relationshipname}": [
     {
       "username": null,
       "scheme": "redis",

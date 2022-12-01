@@ -2,8 +2,10 @@
 
 #ddev-generated
 
+export relationshipname=$1
+
 read -r -d '' memcached_stanza <<MEMCACHED_EOF
-"cache": [
+"${relationshipname}": [
   {
     "service": "memcached",
     "ip": "255.255.255.255",

@@ -2,8 +2,10 @@
 
 #ddev-generated
 
+export relationshipname=$1
+
 read -r -d '' elasticsearch_stanza <<ELASTICSEARCH_EOF
-  "essearch": [
+  "${relationshipname}": [
     {
       "username": null,
       "scheme": "http",

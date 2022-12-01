@@ -21,7 +21,7 @@ teardown() {
     echo "# doing ddev config --project-name=${PROJNAME}" >&3
     ddev config --project-name=${PROJNAME} >/dev/null
     echo "# doing ddev get $source with template ${template} PROJNAME=${PROJNAME} in ${TESTDIR} ($(pwd))" >&3
-    run printf "x\nx\nx\n" | ddev get $source
+    printf "x\nx\nx\n" | ddev get $source
     ddev start -y >/dev/null
     DDEV_DEBUG="" ddev describe -j >/tmp/describe.json
     run ddev exec -s db 'echo ${DDEV_DATABASE}'

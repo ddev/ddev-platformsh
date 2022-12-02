@@ -154,20 +154,19 @@ post_install_actions:
     {{ $_ := set $service_def "fulltype" $service_def.type }}
     {{ $_ := set $service_def "type" $service_type._0 }}
     {{ $_ := set $service_def "version" $service_type._1 }}
-    {{ if eq $service_def.type "mariadb" }} {{ $_ = set $service_def "platform_type" "mysql" }} {{ end }}
-    {{ if eq $service_def.type "mysql" }} {{ $_ = set $service_def "platform_type" "oracle-mysql" }} {{ end }}
-    {{ if eq $service_def.type "postgres" }} {{ $_ = set $service_def "platform_type" "postgresql" }} {{ end }}
-    #echo service_def={{ $service_def }}
+    {{ if eq $service_def.type "mysql" }} {{ $_ = set $service_def "ddev_type" "mariadb" }} {{ end }}
+    {{ if eq $service_def.type "oracle-mysql" }} {{ $_ = set $service_def "ddev_type" "mysql" }} {{ end }}
+    {{ if eq $service_def.type "postgresql" }} {{ $_ = set $service_def "ddev_type" "postgres" }} {{ end }}
+    # echo service_defhere={{$service_def}}
     
     {{ $supported_db_types := list "postgresql" "mysql" "oracle-mysql" }}
     {{/* For supported services, key is the service name and value is the corresponding add-on to install if applicable (nil if not needed) */}}
     {{ $supported_services := dict "redis" "drud/ddev-redis" "memcached" "drud/ddev-memcached" "elasticsearch" "drud/ddev-elasticsearch" }}
-    {{ if $supported_db_types | has $service_def.platform_type }}
+    {{ if $supported_db_types | has $service_def.type }}
       {{/* Databases */}}
-      {{ $dbtype := "" }}
-      {{ $dbtype = replace "postgresql" "postgres" $service_def.fulltype }}
-      {{ $dbtype = regexReplaceAll "^mysql:" $dbtype "mariadb:" }}
-      {{ $dbtype = regexReplaceAll "^oracle-mysql:" $dbtype "mysql:" }}
+      #echo "about to get dbtype"
+
+      {{ $dbtype := list $service_def.ddev_type $service_def.version | join ":" }}
       # echo dbtype={{ $dbtype }}
       {{ if $dbtype }}
         # Unfortunate sed to remove color escape sequences from ddev debug output

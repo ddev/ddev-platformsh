@@ -1,0 +1,3 @@
+somedbforsure:
+  type: postgresql:12
+  disk: 4096

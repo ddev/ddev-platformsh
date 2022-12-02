@@ -5,9 +5,11 @@
 # Args:
 # service name, like 'dbmysql' or 'db'
 # db type, like mariadb:10.4 or postgres:14
+# relationshipname, like "database" (but it's arbitrary, used in PLATFORM_RELATIONSHIPS)
 
 export dbservice=$1
 export dbtype=$2
+export relationshipname=$3
 export dbscheme
 export dbport
 
@@ -29,7 +31,7 @@ case $dbtype in
 esac
 
 read -r -d '' db_stanza <<DB_EOF
-"database": [
+"${relationshipname}": [
   {
     "username": "db",
     "scheme": "${dbscheme}",

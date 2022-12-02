@@ -1,0 +1,9 @@
+somedbforsure:
+  type: oracle-mysql:8.0
+  disk: 4096
+cacheredis:
+  type: redis:6.2
+cachememcached:
+  type: memcached:1.6
+cacheelasticsearch:
+  type: elasticsearch:7.10

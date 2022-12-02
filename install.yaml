@@ -83,41 +83,11 @@ pre_install_actions:
       # Put the PLATFORM_ENVIRONMENT in to the project's web environment
       ddev config --web-environment-add PLATFORM_ENVIRONMENT=${PLATFORM_ENVIRONMENT}
     fi
-    
-    # We don't want to allow new config if they're changing database types from what is currently there.
-  - |
-      #ddev-nodisplay
-      {{ $dbtype := "" }}
-      {{ if .platformapp.relationships.database }}
-      {{ $dbheader := index (split ":" .platformapp.relationships.database) "_0" }} 
-      {{ $dbtype = replace "postgresql" "postgres" (get (get .services $dbheader) "type") }}
-      export upstream_db="{{ regexReplaceAll "oracle-" (regexReplaceAll ":.*$" $dbtype "") "" }}:{{ regexReplaceAll "^.*:" $dbtype "" }}"
-      # Unfortunate sed to remove color escape sequences from ddev debug output
-      current_db_version="$(ddev debug get-volume-db-version | sed -r 's/\x1b\[[0-9;]*m?//g')" 
-      if [ "${current_db_version}" != "" ] && [ ">${upstream_db}<" != ">${current_db_version}<" ]; then
-        printf "There is an existing database in this project that doesn\'t match the upstream database type.\n Please use 'ddev delete' to delete the existing database and retry, or try 'ddev debug migrate-database ${upstream_db}' to migrate the database.\n"
-        false
-      fi
-      {{ end }}
-
-
 
 post_install_actions:
 # If redis is configured, do a ddev get to get it
 - |
   #ddev-nodisplay
-  {{ if and .services.cache.type (hasPrefix "redis" .services.cache.type) }}
-  echo "Running 'ddev get drud/ddev-redis'"
-  ddev get drud/ddev-redis
-  {{ end }}
-  {{ if and .services.cache.type (hasPrefix "memcached" .services.cache.type) }}
-  echo "Running 'ddev get drud/ddev-memcached'"
-  ddev get drud/ddev-memcached
-  {{ end }}
-  {{ if and .services.search.type (hasPrefix "elasticsearch" .services.search.type) }}
-  echo "Running 'ddev get drud/ddev-elasticsearch'"
-  ddev get drud/ddev-elasticsearch
-  {{ end }}
   cat <<-ENDDOCKERFILE >> web-build/Dockerfile.platformsh
   {{ if .platformapp.dependencies.php }}{{ range $pkg, $version := .platformapp.dependencies.php }}{{ if ne $pkg "composer/composer" }}
   ENV COMPOSER_HOME=/usr/local/composer
@@ -171,28 +141,55 @@ post_install_actions:
   echo BASE64_ENCODE=${BASE64_ENCODE}
   PLATFORM_ROUTES="$(echo -n ${platform_routes} | ${BASE64_ENCODE})"
   PLATFORM_PROJECT_ENTROPY="$(echo $RANDOM | shasum -a 256 | awk '{print $1}')"
-  export relationships=()
-  {{ $dbtype := "" }}
-  {{ if .platformapp.relationships.database }}
-  {{ $relationship_name := index (split ":" .platformapp.relationships.database) "_0" }} 
-  {{ $dbtype = replace "postgresql" "postgres" (get (get .services $relationship_name) "type") }}
-  {{ $dbtype = regexReplaceAll "^mysql:" $dbtype "mariadb:" }}
-  {{ $dbtype = regexReplaceAll "^oracle-mysql:" $dbtype "mysql:" }}
-  export DBTYPE={{ regexReplaceAll ":.*$" $dbtype "" }}
-  export DBVERSION={{ regexReplaceAll "^.*:" $dbtype "" }}
-  relationships+=($(./platformsh/generate_db_relationship.sh '{{ $relationship_name }}' '{{ $dbtype }}' | ${BASE64_ENCODE}))
-  #printf "relationships length after db=${#relationships[@]}\nrelationships value=$(echo $relationships | base64 -d)"
-  {{ end }}
   
-  {{ if and .services.cache.type (hasPrefix "redis" .services.cache.type) }}
-  relationships+=($(./platformsh/generate_redis_relationship.sh | ${BASE64_ENCODE}))
-  #printf "relationships length after redis=${#relationships[@]}\nrelationships value=$(echo $relationships | base64 -d)"
-  {{ end }}
-  {{ if and .services.cache.type (hasPrefix "memcached" .services.cache.type) }}
-  relationships+=($(./platformsh/generate_memcached_relationship.sh | ${BASE64_ENCODE}))
-  {{ end }}
-  {{ if and .services.search.type (hasPrefix "elasticsearch" .services.search.type) }}
-  relationships+=($(./platformsh/generate_elasticsearch_relationship.sh | ${BASE64_ENCODE}))
+  {{/* Handling services relationships */}}
+  #ddev-description:Handling services relationships
+  export relationships=()
+  {{ range $relationship_name, $relationship_def := .platformapp.relationships }}
+    #echo "relationship_name={{ $relationship_name }} relationship_dev={{ $relationship_def }}"
+    {{ $service_name := index (split ":" $relationship_def) "_0"  }}
+    {{ $service_def := get $.services $service_name }}
+    {{ if not ($service_def) }}{{ continue }}{{ end }}
+    {{ $service_type := $service_def.type | split ":" }}
+    {{ $_ := set $service_def "type" $service_type._0 }}
+    {{ $_ := set $service_def "version" $service_type._1 }}
+    {{ if eq $service_def.type "mysql" }} {{ $_ = set $service_def "type" "mariadb" }} {{ end }}
+    {{ if eq $service_def.type "oracle-mysql" }} {{ $_ = set $service_def "type" "mysql" }} {{ end }}
+    {{ if eq $service_def.type "postgresql" }} {{ $_ = set $service_def "type" "postgres" }} {{ end }}
+    {{ $_ = set $service_def "fulltype" (list $service_def.type $service_def.version | join ":") }}
+    
+    # echo service_def={{$service_def}}
+    
+    {{ $supported_db_types := list "postgres" "mysql" "mariadb" }}
+    {{/* For supported services, key is the service name and value is the corresponding add-on to install if applicable (nil if not needed) */}}
+    {{ $supported_services := dict "redis" "drud/ddev-redis" "memcached" "drud/ddev-memcached" "elasticsearch" "drud/ddev-elasticsearch" }}
+    {{ if $supported_db_types | has $service_def.type }}
+      {{/* Databases */}}
+
+      {{ $dbtype := $service_def.fulltype }}
+      # echo dbtype={{ $dbtype }}
+      {{ if $dbtype }}
+        # Unfortunate sed to remove color escape sequences from ddev debug output
+        current_db_version="$(ddev debug get-volume-db-version | sed -r 's/\x1b\[[0-9;]*m?//g')"
+        export DBTYPE={{ regexReplaceAll ":.*$" $dbtype "" }}
+        export DBVERSION={{ regexReplaceAll "^.*:" $dbtype "" }}
+        if [ "${current_db_version}" != "" ] && [ ">{{ $dbtype }}<" != ">${current_db_version}<" ]; then
+          printf "There is an existing database in this project that doesn\'t match the upstream database type.\n Please use 'ddev delete' to delete the existing database and retry, or try 'ddev debug migrate-database {{ $dbtype }}' to migrate the database.\n" >&2
+          false
+        fi
+        # echo ./platformsh/generate_db_relationship.sh '{{ $relationship_name }}' '{{ $dbtype }}' '{{ $relationship_name }}' 
+        relationships+=($(./platformsh/generate_db_relationship.sh '{{ $relationship_name }}' '{{ $dbtype }}' '{{ $relationship_name }}' | ${BASE64_ENCODE}))
+        #printf "relationships length after db=${#relationships[@]}\nrelationships value=$(echo $relationships | base64 -d)"
+      {{ end }}
+    {{ else if hasKey $supported_services $service_def.type }}
+      {{/* Other services */}}
+      relationships+=($(./platformsh/generate_{{ $service_def.type }}_relationship.sh '{{ $relationship_name }}' | ${BASE64_ENCODE}))
+      {{ $service_addon := get $supported_services $service_def.type }}
+      {{ if $service_addon }}
+        echo "Running 'ddev get {{ $service_addon }}'"
+        ddev get {{ $service_addon }}
+      {{ end }}
+    {{ end }}
   {{ end }}
 
   #echo "Number of relationships=${#relationships[@]}"

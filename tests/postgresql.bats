@@ -26,6 +26,14 @@ teardown() {
     DDEV_DEBUG="" ddev describe -j >/tmp/describe.json
     run ddev exec -s db 'echo ${DDEV_DATABASE}'
     assert_output "postgres:12"
+
+    echo "# PLATFORM_RELATIONSHIPS=$(cat relationships.json)" >&3
+
+    ddev exec 'echo $PLATFORM_RELATIONSHIPS | base64 -d' >relationships.json
+    assert_equal "$(jq -r .database[0].type <relationships.json)" "postgres:12"
+    assert_equal "$(jq -r .database[0].username <relationships.json)" "db"
+    assert_equal "$(jq -r .database[0].password <relationships.json)" "db"
+
     popd >/dev/null
     per_test_teardown
   done

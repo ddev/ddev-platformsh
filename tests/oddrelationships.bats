@@ -32,6 +32,18 @@ teardown() {
     assert_output "running"
     run jq -r .raw.services.memcached.status </tmp/describe.json
     assert_output "running"
+    ddev exec 'echo $PLATFORM_RELATIONSHIPS | base64 -d' >relationships.json
+
+    echo "# PLATFORM_RELATIONSHIPS=$(cat relationships.json)" >&3
+
+    assert_equal "$(jq -r .database[0].type <relationships.json)" "mysql:8.0"
+    assert_equal "$(jq -r .database[0].host <relationships.json)" "db"
+    assert_equal "$(jq -r .cachememcached[0].hostname <relationships.json)" "memcached"
+    assert_equal "$(jq -r .cachememcached[0].port <relationships.json)" "11211"
+    assert_equal "$(jq -r .cacheelasticsearch[0].hostname <relationships.json)" "elasticsearch"
+    assert_equal "$(jq -r .cacheelasticsearch[0].port <relationships.json)" "9200"
+    assert_equal "$(jq -r .rediscache[0].hostname <relationships.json)" "redis"
+    assert_equal "$(jq -r .rediscache[0].port <relationships.json)" "6379"
 
     popd >/dev/null
     per_test_teardown

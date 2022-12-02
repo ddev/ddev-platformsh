@@ -23,6 +23,14 @@ teardown() {
     run  jq -r .raw.docroot <describe.json
     assert_output "web"
 
+    ddev exec 'echo $PLATFORM_RELATIONSHIPS | base64 -d' >relationships.json
+    echo "# PLATFORM_RELATIONSHIPS=$(cat relationships.json)" >&3
+
+    assert_equal "$(jq -r .database[0].type <relationships.json)" "mariadb:10.4"
+    assert_equal "$(jq -r .database[0].username <relationships.json)" "db"
+    assert_equal "$(jq -r .database[0].password <relationships.json)" "db"
+    assert_equal "$(jq -r .redis[0].hostname <relationships.json)" "redis"
+
     docker inspect ddev-${PROJNAME}-redis >/dev/null
     per_test_teardown
   done

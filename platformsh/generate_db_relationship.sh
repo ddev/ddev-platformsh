@@ -5,6 +5,7 @@
 # Args:
 # service name, like 'dbmysql' or 'db'
 # db type, like mariadb:10.4 or postgres:14
+# relationshipname, like "database" (but it's arbitrary, used in PLATFORM_RELATIONSHIPS)
 
 export dbservice=$1
 export dbtype=$2

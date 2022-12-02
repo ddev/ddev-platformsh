@@ -146,7 +146,7 @@ post_install_actions:
   #ddev-description:Handling services relationships
   export relationships=()
   {{ range $relationship_name, $relationship_def := .platformapp.relationships }}
-    #echo "{{ $relationship_name }}: {{ $relationship_def }}"
+    #echo "relationship_name={{ $relationship_name }} relationship_dev={{ $relationship_def }}"
     {{ $service_name := index (split ":" $relationship_def) "_0"  }}
     {{ $service_def := get $.services $service_name }}
     {{ if not ($service_def) }}{{ continue }}{{ end }}
@@ -154,17 +154,21 @@ post_install_actions:
     {{ $_ := set $service_def "fulltype" $service_def.type }}
     {{ $_ := set $service_def "type" $service_type._0 }}
     {{ $_ := set $service_def "version" $service_type._1 }}
-    #echo {{ $service_def }}
+    {{ if eq $service_def.type "mariadb" }} {{ $_ = set $service_def "platform_type" "mysql" }} {{ end }}
+    {{ if eq $service_def.type "mysql" }} {{ $_ = set $service_def "platform_type" "oracle-mysql" }} {{ end }}
+    {{ if eq $service_def.type "postgres" }} {{ $_ = set $service_def "platform_type" "postgresql" }} {{ end }}
+    #echo service_def={{ $service_def }}
     
     {{ $supported_db_types := list "postgresql" "mysql" "oracle-mysql" }}
     {{/* For supported services, key is the service name and value is the corresponding add-on to install if applicable (nil if not needed) */}}
     {{ $supported_services := dict "redis" "drud/ddev-redis" "memcached" "drud/ddev-memcached" "elasticsearch" "drud/ddev-elasticsearch" }}
-    {{ if $supported_db_types | has $service_def.type }}
+    {{ if $supported_db_types | has $service_def.platform_type }}
       {{/* Databases */}}
       {{ $dbtype := "" }}
       {{ $dbtype = replace "postgresql" "postgres" $service_def.fulltype }}
       {{ $dbtype = regexReplaceAll "^mysql:" $dbtype "mariadb:" }}
       {{ $dbtype = regexReplaceAll "^oracle-mysql:" $dbtype "mysql:" }}
+      # echo dbtype={{ $dbtype }}
       {{ if $dbtype }}
         # Unfortunate sed to remove color escape sequences from ddev debug output
         current_db_version="$(ddev debug get-volume-db-version | sed -r 's/\x1b\[[0-9;]*m?//g')"
@@ -174,6 +178,8 @@ post_install_actions:
           printf "There is an existing database in this project that doesn\'t match the upstream database type.\n Please use 'ddev delete' to delete the existing database and retry, or try 'ddev debug migrate-database {{ $dbtype }}' to migrate the database.\n" >&2
           false
         fi
+        # echo ./platformsh/generate_db_relationship.sh '{{ $relationship_name }}' '{{ $dbtype }}' '{{ $relationship_name }}' 
+
         relationships+=($(./platformsh/generate_db_relationship.sh '{{ $relationship_name }}' '{{ $dbtype }}' '{{ $relationship_name }}' | ${BASE64_ENCODE}))
         #printf "relationships length after db=${#relationships[@]}\nrelationships value=$(echo $relationships | base64 -d)"
       {{ end }}

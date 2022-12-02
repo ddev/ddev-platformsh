@@ -11,7 +11,7 @@ This repository is used with `ddev get platformsh/ddev-platformsh` to get a rich
 4. Run `ddev config` and answer the questions as appropriate
 5. Run `ddev get platformsh/ddev-platformsh` and answer the questions as appropriate
 6. Run `ddev start`
-7. Run `ddev pull platform` to retrieve a copy of the database and contents from the project's file mounts from the environment you entered in step #5
+7. (Optional) Run `ddev pull platform` to retrieve a copy of the database and contents from the project's file mounts from the environment you entered in step #5
    1. If you only want to retrieve the database (skipping the file mounts), add the `--skip-files` flag to the `ddev pull platform` command
 
 ## Notes

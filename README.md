@@ -25,6 +25,15 @@ This repository is used with `ddev get platformsh/ddev-platformsh` to get a rich
     * PHP and Database version
     * hooks are converted to DDEV post-start hooks
     * A working `ddev pull platform` integration with all mounts is created.
+    * Exposes specific `$PLATFORM_` variables (e.g., `$PLATFORM_RELATIONSHIPS`)
+* Supports the following services:
+    * Databases
+      * MariaDB
+      * Oracle MySQL
+      * Postgresql
+    * Redis
+    * Memcached
+    * ElasticSearch
 
 ## What has been tested
 

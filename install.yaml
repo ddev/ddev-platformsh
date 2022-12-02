@@ -92,9 +92,9 @@ pre_install_actions:
     fi
 
 post_install_actions:
-# If redis is configured, do a ddev get to get it
 - |
   #ddev-nodisplay
+  #ddev-description:Support composer and python3 dependencies
   cat <<-ENDDOCKERFILE >> web-build/Dockerfile.platformsh
   {{ if .platformapp.dependencies.php }}{{ range $pkg, $version := .platformapp.dependencies.php }}{{ if ne $pkg "composer/composer" }}
   ENV COMPOSER_HOME=/usr/local/composer
@@ -152,7 +152,6 @@ post_install_actions:
   PLATFORM_PROJECT_ENTROPY="$(echo $RANDOM | shasum -a 256 | awk '{print $1}')"
   
   {{/* Handling services relationships */}}
-  #ddev-description:Handling services relationships
   export relationships=()
   {{ range $relationship_name, $relationship_def := .platformapp.relationships }}
     #echo "relationship_name={{ $relationship_name }} relationship_dev={{ $relationship_def }}"

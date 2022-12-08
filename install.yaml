@@ -16,11 +16,13 @@ pre_install_actions:
     # Make sure we have a ddev version that can support what we do here
   - |
     #ddev-nodisplay
-    (ddev debug capabilities | grep migrate-database >/dev/null) || (echo "Please upgrade ddev to v1.21.1+ for appropriate capabilities" && false)
+    #ddev-description:Checking DDEV version
+    (ddev debug capabilities | grep migrate-database >/dev/null) || (echo "Please upgrade DDEV to v1.21.1+ for appropriate capabilities" && false)
 
   # Get PLATFORMSH_CLI_TOKEN from user if we don't have it yet
   - |
     #ddev-nodisplay
+    #ddev-description:Checking for PLATFORMSH_CLI_TOKEN
     if ( {{ contains "PLATFORMSH_CLI_TOKEN" (list .DdevGlobalConfig.web_environment | toString) }} || {{ contains "PLATFORMSH_CLI_TOKEN" (list .DdevProjectConfig.web_environment | toString) }} ); then
       echo "Using existing PLATFORMSH_CLI_TOKEN."
     else
@@ -29,6 +31,7 @@ pre_install_actions:
 
   - |
     #ddev-nodisplay
+    #ddev-description:Setting PLATFORMSH_CLI_TOKEN
     if !( {{ contains "PLATFORMSH_CLI_TOKEN" (list .DdevGlobalConfig.web_environment | toString) }} || {{ contains "PLATFORMSH_CLI_TOKEN" (list .DdevProjectConfig.web_environment | toString) }} ); then
       read token
       # Put the token into the global web environment
@@ -39,6 +42,7 @@ pre_install_actions:
   # Get PLATFORM_PROJECT from user if we don't have it yet
   - |
     #ddev-nodisplay
+    #ddev-description:Checking for PLATFORM_PROJECT
     # echo 'list ddevprojectconfig.web_environment={{ list .DdevProjectConfig.web_environment | toString }}'
     if ({{ contains "PLATFORM_PROJECT=" (list .DdevProjectConfig.web_environment | toString) }} ); then
       echo "Using existing PLATFORM_PROJECT from project config.yaml."
@@ -48,6 +52,7 @@ pre_install_actions:
 
   - |
     #ddev-nodisplay
+    #ddev-description:Setting PLATFORM_PROJECT
     if !( {{ contains "PLATFORM_PROJECT" (list .DdevProjectConfig.web_environment | toString) }} ); then
       read platform_project
       echo "platform_project = '${platform_project}'"
@@ -61,6 +66,7 @@ pre_install_actions:
     # see ddev v1.20.0
   - |
     #ddev-nodisplay
+    #ddev-description:Setting PLATFORM_APPLICATION_NAME
     if !( {{ contains "PLATFORM_APPLICATION_NAME" (list .DdevProjectConfig.web_environment | toString) }} ); then
       # Put the platform_project in to the project's web environment
       ddev config --web-environment-add PLATFORM_APPLICATION_NAME={{ .platformapp.name }}
@@ -69,6 +75,7 @@ pre_install_actions:
   # Get PLATFORM_ENVIRONMENT from user if we don't have it
   - |
     #ddev-nodisplay
+    #ddev-description:Setting PLATFORM_ENVIRONMENT
     # echo 'list ddevprojectconfig.web_environment={{ list .DdevProjectConfig.web_environment | toString }}'
     if ({{ contains "PLATFORM_ENVIRONMENT=" (list .DdevProjectConfig.web_environment | toString) }} ); then
       echo "Using existing PLATFORM_ENVIRONMENT from project config.yaml."
@@ -85,9 +92,9 @@ pre_install_actions:
     fi
 
 post_install_actions:
-# If redis is configured, do a ddev get to get it
 - |
   #ddev-nodisplay
+  #ddev-description:Support composer and python3 dependencies
   cat <<-ENDDOCKERFILE >> web-build/Dockerfile.platformsh
   {{ if .platformapp.dependencies.php }}{{ range $pkg, $version := .platformapp.dependencies.php }}{{ if ne $pkg "composer/composer" }}
   ENV COMPOSER_HOME=/usr/local/composer
@@ -122,6 +129,8 @@ post_install_actions:
 # Write a config.platformsh.yaml based on calculated values, php version, database, docroot
 - |
   #ddev-nodisplay
+  #ddev-description:Installing dependencies and generating needed environment variables
+
   # set -x
   platform_routes=$(cat <<-"ENDROUTES"
   {
@@ -143,7 +152,6 @@ post_install_actions:
   PLATFORM_PROJECT_ENTROPY="$(echo $RANDOM | shasum -a 256 | awk '{print $1}')"
   
   {{/* Handling services relationships */}}
-  #ddev-description:Handling services relationships
   export relationships=()
   {{ range $relationship_name, $relationship_def := .platformapp.relationships }}
     #echo "relationship_name={{ $relationship_name }} relationship_dev={{ $relationship_def }}"

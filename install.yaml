@@ -247,7 +247,6 @@ post_install_actions:
   - "PLATFORM_DIR=/var/www/html"
   - "PLATFORM_ROUTES=${PLATFORM_ROUTES}"
   - "PLATFORM_VARIABLES=e30="
-  - "PATH=$PATH:/var/www/html/.global/bin"
   {{ if .platformapp.variables.env }}
   {{ range $key, $value := .platformapp.variables.env }}
   - "{{$key}}={{$value}}"{{ end }}{{ end }}

@@ -244,6 +244,7 @@ post_install_actions:
   - "PLATFORM_PROJECT_ENTROPY=${PLATFORM_PROJECT_ENTROPY}"
   # Consider commit hash for PLATFORM_TREE_ID
   - "PLATFORM_TREE_ID=2dc356f2fea13ef683f9adc5fc5bd28e05ad992a"
+  - "PLATFORM_CACHE_DIR=/mnt/ddev-global-cache/ddev-platformsh/${DDEV_PROJECT}"
   - "PLATFORM_DIR=/var/www/html"
   - "PLATFORM_ROUTES=${PLATFORM_ROUTES}"
   - "PLATFORM_VARIABLES=e30="
@@ -260,6 +261,7 @@ post_install_actions:
   hooks:
     post-start:
     - exec: platform self:update -qy --no-major || true
+    - exec: mkdir -p ${PLATFORM_CACHE_DIR} || true
     - exec: '[ ! -z "${PLATFORMSH_CLI_TOKEN:-}" ] && (platform ssh-cert:load  -y || true)'
   {{ if eq .platformapp.build.flavor "composer" }}
     - composer: install

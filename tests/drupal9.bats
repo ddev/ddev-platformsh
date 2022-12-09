@@ -26,6 +26,8 @@ teardown() {
     run  jq -r .raw.docroot <describe.json
     assert_output "web"
 
+    assert_equal $(ddev exec 'echo $PLATFORM_ROUTES | base64 -d | jq -r "keys[0]"') "https://${PROJNAME}.ddev.site/"
+    assert_equal $(ddev exec 'echo $PLATFORM_ROUTES | base64 -d | jq -r .[].production_url') "https://${PROJNAME}.ddev.site/"
     ddev exec 'echo $PLATFORM_RELATIONSHIPS | base64 -d' >relationships.json
     echo "# PLATFORM_RELATIONSHIPS=$(cat relationships.json)" >&3
 

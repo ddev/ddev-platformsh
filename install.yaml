@@ -19,6 +19,20 @@ pre_install_actions:
     #ddev-description:Checking DDEV version
     (ddev debug capabilities | grep migrate-database >/dev/null) || (echo "Please upgrade DDEV to v1.21.1+ for appropriate capabilities" && false)
 
+  - |
+    #ddev-nodisplay
+    #ddev-description:Check for required tools base64, jq, perl
+    needed=""
+    for item in base64 jq perl ; do
+      if ! command -v $item >/dev/null; then
+        needed="${needed} ${item}"
+      fi
+    done
+    if [ "${needed}" != "" ]; then
+      echo "Please install ${needed} on the host computer to use this add-on.";
+      exit 1;
+    fi
+
   # Get PLATFORMSH_CLI_TOKEN from user if we don't have it yet
   - |
     #ddev-nodisplay

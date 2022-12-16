@@ -1,8 +1,8 @@
-[![tests](https://github.com/platformsh/ddev-platformsh/actions/workflows/tests.yml/badge.svg)](https://github.com/platformsh/ddev-platformsh/actions/workflows/tests.yml) ![project is maintained](https://img.shields.io/maintenance/yes/2022.svg)
+[![tests](https://github.com/drud/ddev-platformsh/actions/workflows/tests.yml/badge.svg)](https://github.com/drud/ddev-platformsh/actions/workflows/tests.yml) ![project is maintained](https://img.shields.io/maintenance/yes/2022.svg)
 
 ## What is ddev-platformsh?
 
-This repository is used with `ddev get platformsh/ddev-platformsh` to get a rich integration between your checked-out Platform.sh project and [DDEV](https://github.com/drud/ddev).
+This repository is used with `ddev get drud/ddev-platformsh` to get a rich integration between your checked-out Platform.sh project and [DDEV](https://github.com/drud/ddev).
 
 ## Using with a Platform.sh project
 ### Dependencies
@@ -16,7 +16,7 @@ This repository is used with `ddev get platformsh/ddev-platformsh` to get a rich
 1. Clone your project repository (e.g. `platform get <projectid>`)
 2. `cd` into your project directory
 3. Run `ddev config` and answer the questions as appropriate
-4. Run `ddev get platformsh/ddev-platformsh` and answer the questions as appropriate
+4. Run `ddev get drud/ddev-platformsh` and answer the questions as appropriate
 5. Run `ddev start`
 6. (Optional) Run `ddev pull platform` to retrieve a copy of the database and contents from the project's file mounts from the environment you entered in step #5
    1. If you only want to retrieve the database (skipping the file mounts), add the `--skip-files` flag to the `ddev pull platform` command

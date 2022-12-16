@@ -12,7 +12,7 @@ teardown() {
 @test "drupal8" {
   load per_test.sh
   template="drupal8"
-  for source in $PROJECT_SOURCE platformsh/ddev-platformsh; do
+  for source in $PROJECT_SOURCE drud/ddev-platformsh; do
     per_test_setup
 
     run ddev exec -s db 'echo ${DDEV_DATABASE}'

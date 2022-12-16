@@ -13,7 +13,7 @@ teardown() {
 @test "php" {
   load per_test.sh
   template="php"
-  for source in $PROJECT_SOURCE platformsh/ddev-platformsh; do
+  for source in $PROJECT_SOURCE drud/ddev-platformsh; do
     per_test_setup
 
     run ddev exec "php --version | awk 'NR==1 { sub(/\.[0-9]+$/, \"\", \$2); print \$2 }'"

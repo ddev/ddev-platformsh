@@ -41,6 +41,19 @@ This repository is used with `ddev get drud/ddev-platformsh` to get a rich integ
     * Redis
     * Memcached
     * ElasticSearch
+* Provides the following [Platform.sh-provided environmental variables](https://docs.platform.sh/development/variables/use-variables.html#use-platformsh-provided-variables): 
+  * PLATFORM_APP_DIR
+  * PLATFORM_APPLICATION_NAME
+  * PLATFORM_CACHE_DIR
+  * PLATFORM_ENVIRONMENT
+  * PLATFORM_PROJECT
+  * PLATFORM_PROJECT_ENTROPY
+  * PLATFORM_RELATIONSHIPS
+  * PLATFORM_ROUTES (see note below)
+  * PLATFORM_TREE_ID
+  * PLATFORM_VARIABLES
+
+DDEV does not currently parse the contents of `.platform/routes.yaml` and therefore, `PLATFORM_ROUTES` only contains information related to a single, default route.
 
 ## What has been tested
 

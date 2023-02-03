@@ -36,7 +36,6 @@ pre_install_actions:
   # Get PLATFORMSH_CLI_TOKEN from user if we don't have it yet
   - |
     #ddev-nodisplay
-    #ddev-description:Checking for PLATFORMSH_CLI_TOKEN
     if ( {{ contains "PLATFORMSH_CLI_TOKEN" (list .DdevGlobalConfig.web_environment | toString) }} || {{ contains "PLATFORMSH_CLI_TOKEN" (list .DdevProjectConfig.web_environment | toString) }} ); then
       echo "Using existing PLATFORMSH_CLI_TOKEN."
     else
@@ -56,7 +55,6 @@ pre_install_actions:
   # Get PLATFORM_PROJECT from user if we don't have it yet
   - |
     #ddev-nodisplay
-    #ddev-description:Checking for PLATFORM_PROJECT
     # echo 'list ddevprojectconfig.web_environment={{ list .DdevProjectConfig.web_environment | toString }}'
     if ({{ contains "PLATFORM_PROJECT=" (list .DdevProjectConfig.web_environment | toString) }} ); then
       echo "Using existing PLATFORM_PROJECT from project config.yaml."
@@ -66,7 +64,7 @@ pre_install_actions:
 
   - |
     #ddev-nodisplay
-    #ddev-description:Setting PLATFORM_PROJECT
+    #ddev-description:Set PLATFORM_PROJECT
     if !( {{ contains "PLATFORM_PROJECT" (list .DdevProjectConfig.web_environment | toString) }} ); then
       read platform_project
       echo "platform_project = '${platform_project}'"
@@ -89,7 +87,6 @@ pre_install_actions:
   # Get PLATFORM_ENVIRONMENT from user if we don't have it
   - |
     #ddev-nodisplay
-    #ddev-description:Setting PLATFORM_ENVIRONMENT
     # echo 'list ddevprojectconfig.web_environment={{ list .DdevProjectConfig.web_environment | toString }}'
     if ({{ contains "PLATFORM_ENVIRONMENT=" (list .DdevProjectConfig.web_environment | toString) }} ); then
       echo "Using existing PLATFORM_ENVIRONMENT from project config.yaml."

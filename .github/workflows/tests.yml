@@ -5,7 +5,7 @@ on:
     branches: [ main ]
 
   schedule:
-  - cron: '01 07 * * *'
+  - cron: '12 17 * * *'
 
   workflow_dispatch:
     inputs:
@@ -20,6 +20,7 @@ defaults:
 
 env:
   NIGHTLY_DDEV_PR_URL: "https://nightly.link/ddev/ddev/actions/runs/1720215802/ddev-linux-amd64.zip"
+  DDEV_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   tests:

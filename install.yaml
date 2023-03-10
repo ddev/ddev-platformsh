@@ -115,10 +115,10 @@ post_install_actions:
   #ddev-nodisplay
   cd ..
   unset DDEV_DEBUG
-  project_type=$(ddev describe -j | docker run --rm ddev/ddev-utilities jq -r .raw.type)
+  project_type=$(ddev describe -j | docker run -i --rm ddev/ddev-utilities jq -r .raw.type)
   case $project_type in 
     laravel)
-      docker run --rm ddev/ddev-utilities perl -p -e 's/DB_(HOST|DATABASE|USERNAME|PASSWORD)=(.*)/DB_\1=db/g' -e -e "s#APP_URL=.*#APP_URL=${DDEV_PRIMARY_URL}#g" <.env.example >.env
+      docker run -i --rm ddev/ddev-utilities perl -p -e 's/DB_(HOST|DATABASE|USERNAME|PASSWORD)=(.*)/DB_\1=db/g' -e -e "s#APP_URL=.*#APP_URL=${DDEV_PRIMARY_URL}#g" <.env.example >.env
       ;;
     drupal9)
       mkdir -p .drush
@@ -152,10 +152,10 @@ post_install_actions:
   }
   ENDROUTES
   )
-  BASE64_ENCODE="docker run --rm ddev/ddev-utilities base64 -w 0"
-  BASE64_DECODE="docker run --rm ddev/ddev-utilities base64 -d"
+  BASE64_ENCODE="docker run -i --rm ddev/ddev-utilities base64 -w 0"
+  BASE64_DECODE="docker run -i --rm ddev/ddev-utilities base64 -d"
   PLATFORM_ROUTES="$(echo -n ${platform_routes} | ${BASE64_ENCODE})"
-  PLATFORM_PROJECT_ENTROPY="$(echo $RANDOM | docker run --rm ddev/ddev-utilities shasum -a 256 | awk '{print $1}')"
+  PLATFORM_PROJECT_ENTROPY="$(echo $RANDOM | docker run -i --rm ddev/ddev-utilities shasum -a 256 | awk '{print $1}')"
   
   {{/* Handling services relationships */}}
   export relationships=()
@@ -184,7 +184,7 @@ post_install_actions:
       # echo dbtype={{ $dbtype }}
       {{ if $dbtype }}
         # Unfortunate sed to remove color escape sequences from ddev debug output
-        current_db_version="$(ddev debug get-volume-db-version | sed -r 's/\x1b\[[0-9;]*m?//g')"
+        current_db_version="$(ddev debug get-volume-db-version | docker run -i --rm ddev/ddev-utilities sed -r 's/\x1b\[[0-9;]*m?//g')"
         export DBTYPE={{ regexReplaceAll ":.*$" $dbtype "" }}
         export DBVERSION={{ regexReplaceAll "^.*:" $dbtype "" }}
         if [ "${current_db_version}" != "" ] && [ ">{{ $dbtype }}<" != ">${current_db_version}<" ]; then

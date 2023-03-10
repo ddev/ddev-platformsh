@@ -20,7 +20,11 @@ Make sure you have [DDEV v1.21.6+ installed](https://ddev.readthedocs.io/en/late
 
 ### Upgrade
 
-To upgrade your version of ddev-platformsh, just repeat the `ddev get ddev/ddev-platformsh` to get the latest release.
+To upgrade your version of ddev-platformsh, repeat the `ddev get ddev/ddev-platformsh` to get the latest release.
+
+### Run it again if you change your Platform.sh configuration
+
+If you change your `.platform.app.yaml` or something in your `.platform` directory, repeat the `ddev get ddev/ddev-platformsh` so that the generated configuration for DDEV will be updated.
 
 ## Notes
 

@@ -21,17 +21,8 @@ pre_install_actions:
 
   - |
     #ddev-nodisplay
-    #ddev-description:Check for required tools base64, jq, perl
-    needed=""
-    for item in base64 jq perl ; do
-      if ! command -v $item >/dev/null; then
-        needed="${needed} ${item}"
-      fi
-    done
-    if [ "${needed}" != "" ]; then
-      echo "Please install ${needed} on the host computer to use this add-on.";
-      exit 1;
-    fi
+    #ddev-description:pull ddev/ddev-utilities
+    docker pull ddev/ddev-utilities
 
   # Get PLATFORMSH_CLI_TOKEN from user if we don't have it yet
   - |
@@ -124,13 +115,10 @@ post_install_actions:
   #ddev-nodisplay
   cd ..
   unset DDEV_DEBUG
-  project_type=$(ddev describe -j | jq -r .raw.type)
+  project_type=$(ddev describe -j | docker run --rm ddev/ddev-utilities jq -r .raw.type)
   case $project_type in 
     laravel)
-      # TODO: This depends on perl, but we can't start the project unless these are created
-      # so can't use ddev exec yet. 
-      perl -p -e 's/DB_(HOST|DATABASE|USERNAME|PASSWORD)=(.*)/DB_\1=db/g' .env.example >.env
-      perl -pi.bak -e "s#APP_URL=.*#APP_URL=${DDEV_PRIMARY_URL}#g" .env
+      docker run --rm ddev/ddev-utilities perl -p -e 's/DB_(HOST|DATABASE|USERNAME|PASSWORD)=(.*)/DB_\1=db/g' -e -e "s#APP_URL=.*#APP_URL=${DDEV_PRIMARY_URL}#g" <.env.example >.env
       ;;
     drupal9)
       mkdir -p .drush
@@ -164,11 +152,10 @@ post_install_actions:
   }
   ENDROUTES
   )
-  BASE64_ENCODE="base64"
-  if base64 -w 0 </dev/null >/dev/null 2>&1; then BASE64_ENCODE="base64 -w 0"; fi
-  echo BASE64_ENCODE=${BASE64_ENCODE}
+  BASE64_ENCODE="docker run --rm ddev/ddev-utilities base64 -w 0"
+  BASE64_DECODE="docker run --rm ddev/ddev-utilities base64 -d"
   PLATFORM_ROUTES="$(echo -n ${platform_routes} | ${BASE64_ENCODE})"
-  PLATFORM_PROJECT_ENTROPY="$(echo $RANDOM | shasum -a 256 | awk '{print $1}')"
+  PLATFORM_PROJECT_ENTROPY="$(echo $RANDOM | docker run --rm ddev/ddev-utilities shasum -a 256 | awk '{print $1}')"
   
   {{/* Handling services relationships */}}
   export relationships=()
@@ -206,7 +193,7 @@ post_install_actions:
         fi
         # echo ./platformsh/generate_db_relationship.sh '{{ $relationship_name }}' '{{ $dbtype }}' '{{ $relationship_name }}' 
         relationships+=($(./platformsh/generate_db_relationship.sh '{{ $relationship_name }}' '{{ $dbtype }}' '{{ $relationship_name }}' | ${BASE64_ENCODE}))
-        #printf "relationships length after db=${#relationships[@]}\nrelationships value=$(echo $relationships | base64 -d)"
+        #printf "relationships length after db=${#relationships[@]}\nrelationships value=$(echo $relationships | ${BASE64_DECODE})"
       {{ end }}
     {{ else if hasKey $supported_services $service_def.type }}
       {{/* Other services */}}
@@ -220,8 +207,8 @@ post_install_actions:
   {{ end }}
 
   #echo "Number of relationships=${#relationships[@]}"
-  PLATFORM_RELATIONSHIPS="$((echo '{'; for r in ${relationships[@]::${#relationships[@]}-1}; do echo $r | base64 -d; printf ', \n'; done; echo ${relationships[@]: -1:1} | base64 -d; echo ' }') | ${BASE64_ENCODE})"
-  #printf "PLATFORM_RELATIONSHIPS=$(echo $PLATFORM_RELATIONSHIPS | base64 -d)"
+  PLATFORM_RELATIONSHIPS="$((echo '{'; for r in ${relationships[@]::${#relationships[@]}-1}; do echo $r | ${BASE64_DECODE}; printf ', \n'; done; echo ${relationships[@]: -1:1} | ${BASE64_DECODE}; echo ' }') | ${BASE64_ENCODE})"
+  #printf "PLATFORM_RELATIONSHIPS=$(echo $PLATFORM_RELATIONSHIPS | ${BASE64_DECODE})"
   
   if [ -f config.platformsh.yaml ] && ! grep '#ddev-generated' config.platformsh.yaml; then
     echo "Existing config.platformsh.yaml does not have #ddev-generated, so can't be updated"

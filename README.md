@@ -6,11 +6,8 @@ This repository is used with `ddev get ddev/ddev-platformsh` to get a rich integ
 
 ## Using with a Platform.sh project
 ### Dependencies
-1. Make sure you have [DDEV v1.21.1+ installed](https://ddev.readthedocs.io/en/latest/users/install/ddev-installation/)
-2. The following tools need to be installed for the add-on to run smoothly (you may get them using your regular package manager):
-   * `jq`
-   * `base64`
-   * `perl`
+
+Make sure you have [DDEV v1.21.6+ installed](https://ddev.readthedocs.io/en/latest/users/install/ddev-installation/)
 
 ### Install
 1. Clone your project repository (e.g. `platform get <projectid>`)
@@ -20,6 +17,10 @@ This repository is used with `ddev get ddev/ddev-platformsh` to get a rich integ
 5. Run `ddev start`
 6. (Optional) Run `ddev pull platform` to retrieve a copy of the database and contents from the project's file mounts from the environment you entered in step #5
    1. If you only want to retrieve the database (skipping the file mounts), add the `--skip-files` flag to the `ddev pull platform` command
+
+### Upgrade
+
+To upgrade your version of ddev-platformsh, just repeat the `ddev get ddev/ddev-platformsh` to get the latest release.
 
 ## Notes
 

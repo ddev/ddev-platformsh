@@ -13,6 +13,9 @@ per_test_setup() {
   ddev get ${PROJECT_SOURCE}
   echo "# doing ddev restart with template ${template} PROJNAME=${PROJNAME} in ${TESTDIR} ($(pwd))" >&3
   ddev restart >/dev/null
+  if [ -f ${PROJECT_SOURCE}/tests/testdata/${template}/db.sql.gz ]; then
+    ddev import-db --src=${PROJECT_SOURCE}/tests/testdata/${template}/db.sql.gz
+  fi
 }
 
 per_test_teardown() {

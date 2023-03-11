@@ -141,6 +141,11 @@ post_install_actions:
   #ddev-description:Installing dependencies and generating needed environment variables
 
   # set -x
+  BASE64_ENCODE="docker run -i --rm ddev/ddev-utilities base64 -w 0"
+  BASE64_DECODE="docker run -i --rm ddev/ddev-utilities base64 -d"
+  PLATFORM_ROUTES="$(echo -n ${platform_routes} | ${BASE64_ENCODE})"
+  PLATFORM_PROJECT_ENTROPY="$(echo $RANDOM | docker run -i --rm ddev/ddev-utilities shasum -a 256 | awk '{print $1}')"
+
   platform_routes=$(cat <<-ENDROUTES
   {
   "${DDEV_PRIMARY_URL}/": {
@@ -154,10 +159,11 @@ post_install_actions:
   }
   ENDROUTES
   )
-  BASE64_ENCODE="docker run -i --rm ddev/ddev-utilities base64 -w 0"
-  BASE64_DECODE="docker run -i --rm ddev/ddev-utilities base64 -d"
-  PLATFORM_ROUTES="$(echo -n ${platform_routes} | ${BASE64_ENCODE})"
-  PLATFORM_PROJECT_ENTROPY="$(echo $RANDOM | docker run -i --rm ddev/ddev-utilities shasum -a 256 | awk '{print $1}')"
+  routes=()
+  {{ range $k, $v := .routes }}
+  echo key={{ $k }} val={{ $v }}
+  echo vid={{ $v.id }}
+  {{ end }}
   
   {{/* Handling services relationships */}}
   export relationships=()
@@ -301,4 +307,5 @@ post_install_actions:
 yaml_read_files:
   platformapp: .platform.app.yaml
   services: .platform/services.yaml
+  routes: .platform/routes.yaml
 

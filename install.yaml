@@ -118,7 +118,9 @@ post_install_actions:
   project_type=$(ddev describe -j | docker run -i --rm ddev/ddev-utilities jq -r .raw.type)
   case $project_type in 
     laravel)
-      docker run -i --rm ddev/ddev-utilities perl -p -e 's/DB_(HOST|DATABASE|USERNAME|PASSWORD)=(.*)/DB_\1=db/g' -e -e "s#APP_URL=.*#APP_URL=${DDEV_PRIMARY_URL}#g" <.env.example >.env
+      #set -x
+      # The double-run here is awkward, but I didn't figure out how to do it with two '-e'
+      docker run -i --rm ddev/ddev-utilities perl -p -e "s!APP_URL=.*!APP_URL=${DDEV_PRIMARY_URL}!g" <.env.example | docker run -i --rm ddev/ddev-utilities perl -p -e 's!DB_(HOST|DATABASE|USERNAME|PASSWORD)=(.*)!DB_\1=db!g'   >.env
       ;;
     drupal9)
       mkdir -p .drush

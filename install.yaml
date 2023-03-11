@@ -247,13 +247,11 @@ post_install_actions:
   {{ end }}
   web_environment:
   - "PLATFORM_RELATIONSHIPS=${PLATFORM_RELATIONSHIPS}"
-  - "PLATFORM_MOUNTS={{ range $key, $value := .platformapp.mounts }}{{ $key }} {{ end }}"
   - "PLATFORM_APP_DIR=/var/www/html"
   - "PLATFORM_PROJECT_ENTROPY=${PLATFORM_PROJECT_ENTROPY}"
   # Consider commit hash for PLATFORM_TREE_ID
   - "PLATFORM_TREE_ID=2dc356f2fea13ef683f9adc5fc5bd28e05ad992a"
   - "PLATFORM_CACHE_DIR=/mnt/ddev-global-cache/ddev-platformsh/${DDEV_PROJECT}"
-  - "PLATFORM_DIR=/var/www/html"
   - "PLATFORM_ROUTES=${PLATFORM_ROUTES}"
   - "PLATFORM_VARIABLES=e30="
   {{ if .platformapp.variables.env }}

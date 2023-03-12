@@ -8,6 +8,7 @@ project_files:
   - platformsh/generate_elasticsearch_relationship.sh
   - platformsh/generate_memcached_relationship.sh
   - platformsh/generate_redis_relationship.sh
+  - platformsh/generate_route.sh
 
 global_files:
   - commands/web/platform
@@ -143,28 +144,29 @@ post_install_actions:
   # set -x
   BASE64_ENCODE="docker run -i --rm ddev/ddev-utilities base64 -w 0"
   BASE64_DECODE="docker run -i --rm ddev/ddev-utilities base64 -d"
-  PLATFORM_ROUTES="$(echo -n ${platform_routes} | ${BASE64_ENCODE})"
   PLATFORM_PROJECT_ENTROPY="$(echo $RANDOM | docker run -i --rm ddev/ddev-utilities shasum -a 256 | awk '{print $1}')"
 
-  platform_routes=$(cat <<-ENDROUTES
-  {
-  "${DDEV_PRIMARY_URL}/": {
-    "primary": true,
-    "id": null,
-    "production_url": "${DDEV_PRIMARY_URL}/",
-    "attributes": {},
-    "upstream": "drupal",
-    "type": "upstream",
-    "original_url": "https://{default}/"  }
-  }
-  ENDROUTES
-  )
   routes=()
+  set -x
   {{ range $k, $v := .routes }}
-  echo key={{ $k }} val={{ $v }}
-  echo vid={{ $v.id }}
+  echo key={{ $k }} val={{ $v }} vid={{ $v.id }}
+  # Get a proper id value
+  {{ $id := "" }}
+  {{ if $v.id }}
+  {{ $id = $v.id }}
   {{ end }}
-  
+
+  r=$(./platformsh/generate_route.sh ${DDEV_PRIMARY_URL}  '{{ $id }}' '{{ $v.production_url }}' '{{ $v.upstream }}' '{{ $v.type }}' '{{ $v.original_url }}' | ${BASE64_ENCODE})
+  echo "r=$r"
+  routes+=(${r})
+  {{ end }}
+  set +x
+  echo routes=$routes
+  echo "Number of routes=${#routes[@]}"
+  set -x
+  PLATFORM_ROUTES="$((echo '{'; for r in ${routes[@]::${#routes[@]}-1}; do echo $r | ${BASE64_DECODE}; printf ', \n'; done; echo ${routes[@]: -1:1} | ${BASE64_DECODE}; echo ' }') | ${BASE64_ENCODE})"
+  set +x
+
   {{/* Handling services relationships */}}
   export relationships=()
   {{ range $relationship_name, $relationship_def := .platformapp.relationships }}

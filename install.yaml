@@ -8,6 +8,7 @@ project_files:
   - platformsh/generate_elasticsearch_relationship.sh
   - platformsh/generate_memcached_relationship.sh
   - platformsh/generate_redis_relationship.sh
+  - platformsh/generate_redis-persistent_relationship.sh
   - platformsh/generate_route.sh
 
 global_files:
@@ -147,7 +148,7 @@ post_install_actions:
   PLATFORM_PROJECT_ENTROPY="$(echo $RANDOM | docker run -i --rm ddev/ddev-utilities shasum -a 256 | awk '{print $1}')"
 
   routes=()
-  set -x
+  #set -x
   {{ range $k, $v := .routes }}
   echo key={{ $k }} val={{ $v }} vid={{ $v.id }}
   # Get a proper id value
@@ -163,7 +164,7 @@ post_install_actions:
   set +x
   echo routes=$routes
   echo "Number of routes=${#routes[@]}"
-  set -x
+  #set -x
   PLATFORM_ROUTES="$((echo '{'; for r in ${routes[@]::${#routes[@]}-1}; do echo $r | ${BASE64_DECODE}; printf ', \n'; done; echo ${routes[@]: -1:1} | ${BASE64_DECODE}; echo ' }') | ${BASE64_ENCODE})"
   set +x
 
@@ -184,7 +185,7 @@ post_install_actions:
     
     {{ $supported_db_types := list "postgres" "mysql" "mariadb" }}
     {{/* For supported services, key is the service name and value is the corresponding add-on to install if applicable (nil if not needed) */}}
-    {{ $supported_services := dict "redis" "ddev/ddev-redis" "memcached" "ddev/ddev-memcached" "elasticsearch" "ddev/ddev-elasticsearch" }}
+    {{ $supported_services := dict "redis" "ddev/ddev-redis" "redis-persistent" "ddev/ddev-redis" "memcached" "ddev/ddev-memcached" "elasticsearch" "ddev/ddev-elasticsearch" }}
     {{ if $supported_db_types | has $service_def.type }}
       {{/* Databases */}}
 

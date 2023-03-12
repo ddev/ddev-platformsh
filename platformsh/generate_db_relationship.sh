@@ -30,7 +30,7 @@ case $dbtype in
     ;;
 esac
 
-read -r -d '' route_stanza <<DB_EOF
+read -r -d '' db_stanza <<DB_EOF
 "${relationshipname}": [
   {
     "username": "db",

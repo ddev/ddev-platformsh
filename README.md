@@ -45,6 +45,7 @@ If you change your `.platform.app.yaml` or something in your `.platform` directo
       * Oracle MySQL
       * Postgresql
     * Redis
+    * Redis-persistent
     * Memcached
     * ElasticSearch
 * Provides the following [Platform.sh-provided environmental variables](https://docs.platform.sh/development/variables/use-variables.html#use-platformsh-provided-variables): 

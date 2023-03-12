@@ -142,15 +142,16 @@ post_install_actions:
   #ddev-nodisplay
   #ddev-description:Installing dependencies and generating needed environment variables
 
-  # set -x
+  #set -x
   BASE64_ENCODE="docker run -i --rm ddev/ddev-utilities base64 -w 0"
   BASE64_DECODE="docker run -i --rm ddev/ddev-utilities base64 -d"
   PLATFORM_PROJECT_ENTROPY="$(echo $RANDOM | docker run -i --rm ddev/ddev-utilities shasum -a 256 | awk '{print $1}')"
 
   routes=()
   #set -x
+  #echo {{ .routes }}
   {{ range $k, $v := .routes }}
-  echo key={{ $k }} val={{ $v }} vid={{ $v.id }}
+  #echo key={{ $k }} val={{ $v }}
   # Get a proper id value
   {{ $id := "" }}
   {{ if $v.id }}
@@ -158,15 +159,14 @@ post_install_actions:
   {{ end }}
 
   r=$(./platformsh/generate_route.sh ${DDEV_PRIMARY_URL}  '{{ $id }}' '{{ $v.production_url }}' '{{ $v.upstream }}' '{{ $v.type }}' '{{ $v.original_url }}' | ${BASE64_ENCODE})
-  echo "r=$r"
+  #echo "r=$r"
   routes+=(${r})
   {{ end }}
   set +x
-  echo routes=$routes
-  echo "Number of routes=${#routes[@]}"
+  #echo routes=$routes
+  #echo "Number of routes=${#routes[@]}"
   #set -x
   PLATFORM_ROUTES="$((echo '{'; for r in ${routes[@]::${#routes[@]}-1}; do echo $r | ${BASE64_DECODE}; printf ', \n'; done; echo ${routes[@]: -1:1} | ${BASE64_DECODE}; echo ' }') | ${BASE64_ENCODE})"
-  set +x
 
   {{/* Handling services relationships */}}
   export relationships=()

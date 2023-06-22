@@ -174,8 +174,6 @@ post_install_actions:
     {{ if eq $service_def.type "postgresql" }} {{ $_ = set $service_def "type" "postgres" }} {{ end }}
     {{ $_ = set $service_def "fulltype" (list $service_def.type $service_def.version | join ":") }}
     
-    # echo service_def={{$service_def}}
-    
     {{ $supported_db_types := list "postgres" "mysql" "mariadb" }}
     {{/* For supported services, key is the service name and value is the corresponding add-on to install if applicable (nil if not needed) */}}
     {{ $supported_services := dict "redis" "ddev/ddev-redis" "memcached" "ddev/ddev-memcached" "elasticsearch" "ddev/ddev-elasticsearch" }}

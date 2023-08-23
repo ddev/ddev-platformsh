@@ -19,7 +19,7 @@ pre_install_actions:
   - |
     #ddev-nodisplay
     #ddev-description:Checking DDEV version
-    (ddev debug capabilities | grep web-start-hooks >/dev/null) || (echo "Please upgrade DDEV to v1.21.5+ for appropriate capabilities" && false)
+    (ddev debug capabilities | grep multiple-upload-dirs >/dev/null) || (echo "Please upgrade DDEV to v1.22+ for appropriate capabilities" && false)
 
   - |
     #ddev-nodisplay

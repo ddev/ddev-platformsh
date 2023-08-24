@@ -29,7 +29,6 @@ If you change your `.platform.app.yaml` or something in your `.platform` directo
 ## Notes
 
 * If your local project has a different database type than the upstream (Platform.sh) database, it will conflict, so please back up your database with `ddev export-db` and `ddev delete -y` before starting the project with new config based on upstream.
-* If your project does not have a .platform/routes.yaml, then `ddev get ddev/ddev-platformsh` will fail explaining that. In this case, just create an empty routes.yaml, `touch .platform/routes.yaml`.
 * Your experience is super-important: Please let us know about how it went for you in any of the [DDEV support venues](https://ddev.readthedocs.io/en/latest/#support-and-user-contributed-documentation)
 
 ## What does it do right now?

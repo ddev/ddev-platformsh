@@ -21,7 +21,7 @@ export original_url=$6
 
 idline='"id": null'
 if [ ! -z ${id} ]; then
-  idline="\"id\": ${id}"
+  idline="\"id\": \"${id}\""
 fi
 
 read -r -d '' route_stanza <<ROUTE_EOF

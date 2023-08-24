@@ -158,7 +158,7 @@ post_install_actions:
   {{ $id = $v.id }}
   {{ end }}
 
-  r=$(./platformsh/generate_route.sh ${DDEV_PRIMARY_URL}  '{{ $id }}' '{{ $v.production_url }}' '{{ $v.upstream }}' '{{ $v.type }}' '{{ $v.original_url }}' | ${BASE64_ENCODE})
+  r=$(./platformsh/generate_route.sh "${DDEV_PRIMARY_URL}/"  '{{ $id }}' '{{ $v.production_url }}' '{{ $v.upstream }}' '{{ $v.type }}' '{{ $v.original_url }}' | ${BASE64_ENCODE})
   #echo "r=$r"
   routes+=(${r})
   {{ end }}

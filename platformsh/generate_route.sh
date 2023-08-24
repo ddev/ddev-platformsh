@@ -19,11 +19,15 @@ export upstream=$4
 export type=$5
 export original_url=$6
 
+idline='"id": null'
+if [ ! -z ${id} ]; then
+  idline="\"id\": ${id}"
+fi
 
 read -r -d '' route_stanza <<ROUTE_EOF
 "${route}": {
     "primary": true,
-    "id": "${id}",
+    ${idline},
     "production_url": "${production_url}",
     "attributes": {},
     "upstream": "${upstream}",

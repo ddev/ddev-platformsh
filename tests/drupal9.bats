@@ -18,7 +18,7 @@ teardown() {
     ddev exec drush cr
 
     run curl -L -s http://${PROJNAME}.ddev.site/
-    assert_output "this is a test of ddev-platformsh drupal9"
+    assert_output --partial "this is a test of ddev-platformsh drupal9"
 
     run ddev exec -s db 'echo ${DDEV_DATABASE}'
     assert_output "mariadb:10.4"

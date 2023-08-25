@@ -229,6 +229,7 @@ post_install_actions:
   # #ddev-generated
   # Generated configuration based on platform.sh project configuration
   disable_settings_management: true
+  fail_on_hook_fail: true
   {{ $phpversion := trimPrefix "php:" .platformapp.type }}
   php_version: {{ $phpversion }}
   database:

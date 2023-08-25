@@ -8,6 +8,8 @@ project_files:
   - platformsh/generate_elasticsearch_relationship.sh
   - platformsh/generate_memcached_relationship.sh
   - platformsh/generate_redis_relationship.sh
+  - platformsh/generate_redis-persistent_relationship.sh
+  - platformsh/generate_route.sh
 
 global_files:
   - commands/web/platform
@@ -17,7 +19,7 @@ pre_install_actions:
   - |
     #ddev-nodisplay
     #ddev-description:Checking DDEV version
-    (ddev debug capabilities | grep web-start-hooks >/dev/null) || (echo "Please upgrade DDEV to v1.21.5+ for appropriate capabilities" && false)
+    (ddev debug capabilities | grep multiple-upload-dirs >/dev/null) || (echo "Please upgrade DDEV to v1.22+ for appropriate capabilities" && false)
 
   - |
     #ddev-nodisplay
@@ -140,25 +142,32 @@ post_install_actions:
   #ddev-nodisplay
   #ddev-description:Installing dependencies and generating needed environment variables
 
-  # set -x
-  platform_routes=$(cat <<-ENDROUTES
-  {
-  "${DDEV_PRIMARY_URL}/": {
-    "primary": true,
-    "id": null,
-    "production_url": "${DDEV_PRIMARY_URL}/",
-    "attributes": {},
-    "upstream": "drupal",
-    "type": "upstream",
-    "original_url": "https://{default}/"  }
-  }
-  ENDROUTES
-  )
+  #set -x
   BASE64_ENCODE="docker run -i --rm ddev/ddev-utilities base64 -w 0"
   BASE64_DECODE="docker run -i --rm ddev/ddev-utilities base64 -d"
-  PLATFORM_ROUTES="$(echo -n ${platform_routes} | ${BASE64_ENCODE})"
   PLATFORM_PROJECT_ENTROPY="$(echo $RANDOM | docker run -i --rm ddev/ddev-utilities shasum -a 256 | awk '{print $1}')"
-  
+
+  routes=()
+  #set -x
+  #echo {{ .routes }}
+  {{ range $k, $v := .routes }}
+  #echo key={{ $k }} val={{ $v }}
+  # Get a proper id value
+  {{ $id := "" }}
+  {{ if $v.id }}
+  {{ $id = $v.id }}
+  {{ end }}
+
+  r=$(./platformsh/generate_route.sh "${DDEV_PRIMARY_URL}/"  '{{ $id }}' '{{ $v.production_url }}' '{{ $v.upstream }}' '{{ $v.type }}' '{{ $v.original_url }}' | ${BASE64_ENCODE})
+  #echo "r=$r"
+  routes+=(${r})
+  {{ end }}
+  set +x
+  #echo routes=$routes
+  #echo "Number of routes=${#routes[@]}"
+  #set -x
+  PLATFORM_ROUTES="$((echo '{'; for r in ${routes[@]::${#routes[@]}-1}; do echo $r | ${BASE64_DECODE}; printf ', \n'; done; echo ${routes[@]: -1:1} | ${BASE64_DECODE}; echo ' }') | ${BASE64_ENCODE})"
+
   {{/* Handling services relationships */}}
   export relationships=()
   {{ range $relationship_name, $relationship_def := .platformapp.relationships }}
@@ -176,7 +185,7 @@ post_install_actions:
     
     {{ $supported_db_types := list "postgres" "mysql" "mariadb" }}
     {{/* For supported services, key is the service name and value is the corresponding add-on to install if applicable (nil if not needed) */}}
-    {{ $supported_services := dict "redis" "ddev/ddev-redis" "memcached" "ddev/ddev-memcached" "elasticsearch" "ddev/ddev-elasticsearch" }}
+    {{ $supported_services := dict "redis" "ddev/ddev-redis" "redis-persistent" "ddev/ddev-redis" "memcached" "ddev/ddev-memcached" "elasticsearch" "ddev/ddev-elasticsearch" }}
     {{ if $supported_db_types | has $service_def.type }}
       {{/* Databases */}}
 
@@ -301,4 +310,5 @@ post_install_actions:
 yaml_read_files:
   platformapp: .platform.app.yaml
   services: .platform/services.yaml
+  routes: .platform/routes.yaml
 

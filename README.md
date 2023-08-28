@@ -7,7 +7,7 @@ This repository is used with `ddev get ddev/ddev-platformsh` to get a rich integ
 ## Using with a Platform.sh project
 ### Dependencies
 
-Make sure you have [DDEV v1.21.6+ installed](https://ddev.readthedocs.io/en/latest/users/install/ddev-installation/)
+Make sure you have [DDEV v1.22.1+ installed](https://ddev.readthedocs.io/en/latest/users/install/ddev-installation/)
 
 ### Install
 1. Clone your project repository (e.g. `platform get <projectid>`)
@@ -20,7 +20,7 @@ Make sure you have [DDEV v1.21.6+ installed](https://ddev.readthedocs.io/en/late
 
 ### Upgrade
 
-To upgrade your version of ddev-platformsh, repeat the `ddev get ddev/ddev-platformsh` to get the latest release.
+To upgrade your version of ddev-platformsh, repeat the `ddev get ddev/ddev-platformsh` to get the latest release. To see the installed version, `ddev get --installed`.
 
 ### Run it again if you change your Platform.sh configuration
 
@@ -29,7 +29,7 @@ If you change your `.platform.app.yaml` or something in your `.platform` directo
 ## Notes
 
 * If your local project has a different database type than the upstream (Platform.sh) database, it will conflict, so please back up your database with `ddev export-db` and `ddev delete -y` before starting the project with new config based on upstream.
-* Your experience is super-important: Please let us know about how it went for you in any of the [DDEV support venues](https://ddev.readthedocs.io/en/latest/#support-and-user-contributed-documentation)
+* Your experience is super-important: Please let us know about how it went for you in any of the [DDEV support venues](https://ddev.readthedocs.io/en/latest/users/support/)
 
 ## What does it do right now?
 
@@ -37,7 +37,7 @@ If you change your `.platform.app.yaml` or something in your `.platform` directo
     * PHP and Database version
     * hooks are converted to DDEV post-start hooks
     * A working `ddev pull platform` integration with all mounts is created.
-    * Exposes specific `$PLATFORM_` variables (e.g., `$PLATFORM_RELATIONSHIPS`)
+    * Exposes specific `$PLATFORM_` variables (e.g., `$PLATFORM_RELATIONSHIPS`, `$PLATFORM_ROUTES`)
 * Supports the following services:
     * Databases
       * MariaDB
@@ -55,20 +55,21 @@ If you change your `.platform.app.yaml` or something in your `.platform` directo
   * PLATFORM_PROJECT
   * PLATFORM_PROJECT_ENTROPY
   * PLATFORM_RELATIONSHIPS
-  * PLATFORM_ROUTES (see note below)
+  * PLATFORM_ROUTES
   * PLATFORM_TREE_ID
   * PLATFORM_VARIABLES
-
-DDEV does not currently parse the contents of `.platform/routes.yaml` and therefore, `PLATFORM_ROUTES` only contains information related to a single, default route.
 
 ## What has been tested
 
 These Platform.sh templates are included in the automated tests that run nightly. They will be growing in maturity with your feedback!
 
 * [php](https://github.com/platformsh-templates/php)
-* [drupal9](https://github.com/platformsh-templates/drupal9) and [drupal8](https://github.com/platformsh-templates/drupal8)
+* [drupal9](https://github.com/platformsh-templates/drupal9) and [drupal10](https://github.com/platformsh-templates/drupal10)
 * [laravel](https://github.com/platformsh-templates/laravel)
+* [magento2ce](https://github.com/platformsh-templates/magento2ce)
 * [wordpress-composer](https://github.com/platformsh-templates/wordpress-composer)
+
+(Each of the above but magento2ce has automated tests.)
 
 ## What will it do in the future
 

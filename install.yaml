@@ -147,6 +147,16 @@ post_install_actions:
   BASE64_DECODE="docker run -i --rm ddev/ddev-utilities base64 -d"
   PLATFORM_PROJECT_ENTROPY="$(echo $RANDOM | docker run -i --rm ddev/ddev-utilities shasum -a 256 | awk '{print $1}')"
 
+  {{ $composerVersion := "2" }}
+  {{ with .platformapp.dependencies.php }}
+    {{ range $package, $version := . }}
+      {{ if eq $package "composer/composer" }}
+        {{ $composerVersion = replace "^" "" $version }}
+      {{ end }}
+    {{ end }}
+  {{ end }}
+  
+
   routes=()
   #set -x
   #echo {{ .routes }}
@@ -231,6 +241,7 @@ post_install_actions:
   disable_settings_management: true
   {{ $phpversion := trimPrefix "php:" .platformapp.type }}
   php_version: {{ $phpversion }}
+  composer_version: "{{ $composerVersion }}"
   database:
     type: ${DBTYPE:-mariadb}
     version: ${DBVERSION:-10.4}

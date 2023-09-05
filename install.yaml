@@ -25,7 +25,15 @@ pre_install_actions:
   - |
     #ddev-nodisplay
     #ddev-description:pull ddev/ddev-utilities
-    docker pull ddev/ddev-utilities
+    docker pull ddev/ddev-utilities >/dev/null
+
+  - |
+    #ddev-nodisplay
+    #ddev-description:check project type
+    {{ if not (hasPrefix  "php" .platformapp.type) }}
+      printf "\n\nUnsupported application type {{ .platformapp.type }}.\nOnly php applications are currently supported." >&2
+      exit 5
+    {{ end }}
 
   # Get PLATFORMSH_CLI_TOKEN from user if we don't have it yet
   - |
@@ -33,7 +41,7 @@ pre_install_actions:
     if ( {{ contains "PLATFORMSH_CLI_TOKEN" (list .DdevGlobalConfig.web_environment | toString) }} || {{ contains "PLATFORMSH_CLI_TOKEN" (list .DdevProjectConfig.web_environment | toString) }} ); then
       echo "Using existing PLATFORMSH_CLI_TOKEN."
     else
-      printf "Please enter your platform.sh token: "
+      printf "\n\nPlease enter your platform.sh token: "
     fi
 
   - |
@@ -53,7 +61,7 @@ pre_install_actions:
     if ({{ contains "PLATFORM_PROJECT=" (list .DdevProjectConfig.web_environment | toString) }} ); then
       echo "Using existing PLATFORM_PROJECT from project config.yaml."
     else
-      printf "Please enter your platform.sh project ID (like '6k4ypl5iendqd'): "
+      printf "\n\nPlease enter your platform.sh project ID (like '6k4ypl5iendqd'): "
     fi
 
   - |
@@ -85,7 +93,7 @@ pre_install_actions:
     if ({{ contains "PLATFORM_ENVIRONMENT=" (list .DdevProjectConfig.web_environment | toString) }} ); then
       echo "Using existing PLATFORM_ENVIRONMENT from project config.yaml."
     else
-      printf "Please enter your platform.sh project environment (like 'main'): "
+      printf "\n\nPlease enter your platform.sh project environment (like 'main'): "
     fi
 
   - |
@@ -208,7 +216,7 @@ post_install_actions:
         export DBTYPE={{ regexReplaceAll ":.*$" $dbtype "" }}
         export DBVERSION={{ regexReplaceAll "^.*:" $dbtype "" }}
         if [ "${current_db_version}" != "" ] && [ ">{{ $dbtype }}<" != ">${current_db_version}<" ]; then
-          printf "There is an existing database in this project that doesn\'t match the upstream database type.\n Please use 'ddev delete' to delete the existing database and retry, or try 'ddev debug migrate-database {{ $dbtype }}' to migrate the database.\n" >&2
+          printf "\n\nThere is an existing database in this project that doesn\'t match the upstream database type.\n Please use 'ddev delete' to delete the existing database and retry, or try 'ddev debug migrate-database {{ $dbtype }}' to migrate the database.\n" >&2
           false
         fi
         # echo ./platformsh/generate_db_relationship.sh '{{ $relationship_name }}' '{{ $dbtype }}' '{{ $relationship_name }}' 
@@ -230,6 +238,8 @@ post_install_actions:
   PLATFORM_RELATIONSHIPS="$((echo '{'; for r in ${relationships[@]::${#relationships[@]}-1}; do echo $r | ${BASE64_DECODE}; printf ', \n'; done; echo ${relationships[@]: -1:1} | ${BASE64_DECODE}; echo ' }') | ${BASE64_ENCODE})"
   #printf "PLATFORM_RELATIONSHIPS=$(echo $PLATFORM_RELATIONSHIPS | ${BASE64_DECODE})"
   
+  {{ $phpversion := trimPrefix "php:" .platformapp.type }}
+
   if [ -f config.platformsh.yaml ] && ! grep '#ddev-generated' config.platformsh.yaml; then
     echo "Existing config.platformsh.yaml does not have #ddev-generated, so can't be updated"
     exit 2
@@ -240,7 +250,6 @@ post_install_actions:
   # #ddev-generated
   # Generated configuration based on platform.sh project configuration
   disable_settings_management: true
-  {{ $phpversion := trimPrefix "php:" .platformapp.type }}
   php_version: {{ $phpversion }}
   composer_version: "{{ $composerVersion }}"
   database:

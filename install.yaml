@@ -30,7 +30,7 @@ pre_install_actions:
   - |
     #ddev-nodisplay
     #ddev-description:check project type
-    {{ if not (hasPrefix .platformapp.type "php") }}
+    {{ if not (hasPrefix  "php" .platformapp.type) }}
       printf "\n\nUnsupported application type {{ .platformapp.type }}.\nOnly php applications are currently supported." >&2
       exit 5
     {{ end }}

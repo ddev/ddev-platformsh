@@ -33,6 +33,7 @@ If you change your `.platform.app.yaml` or something in your `.platform` directo
 
 ## What does it do right now?
 
+* Works with many projects of type `php`, for example, `php:8.1` or `php:8.2`. It does not work with non-php projects.
 * Takes your checked-out Platform.sh project and configures DDEV based on that information.
     * PHP and Database version
     * hooks are converted to DDEV post-start hooks

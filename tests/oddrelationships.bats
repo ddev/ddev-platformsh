@@ -24,7 +24,7 @@ teardown() {
     printf "x\nx\nx\n" | ddev get $source
     ddev start -y >/dev/null
     DDEV_DEBUG="" ddev describe -j >/tmp/describe.json
-    run ddev exec -s db 'echo ${DDEV_DATABASE}'
+    run ddev exec -s db 'echo ${DDEV_DATABASE}' >/dev/null
     assert_output "mysql:8.0"
     run jq -r .raw.services.redis.status </tmp/describe.json
     assert_output "running"
@@ -32,7 +32,7 @@ teardown() {
     assert_output "running"
     run jq -r .raw.services.memcached.status </tmp/describe.json
     assert_output "running"
-    ddev exec 'echo $PLATFORM_RELATIONSHIPS | base64 -d' >relationships.json
+    ddev exec 'echo $PLATFORM_RELATIONSHIPS | base64 -d' >relationships.json 2>/dev/null
 
     echo "# PLATFORM_RELATIONSHIPS=$(cat relationships.json)" >&3
 

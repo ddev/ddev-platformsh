@@ -27,7 +27,11 @@ jobs:
       fail-fast: false
 
     runs-on: ubuntu-latest
-
+    env:
+      # Don't try interactive behaviors
+      DDEV_NONINTERACTIVE: "true"
+      # Don't send telemetry to amplitude
+      DDEV_NO_INSTRUMENTATION: "true"
     steps:
       - uses: ddev/github-action-add-on-test@v1
         with:

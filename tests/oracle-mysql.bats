@@ -24,10 +24,10 @@ teardown() {
     printf "x\nx\nx\n" | ddev get $source
     ddev start -y >/dev/null
     DDEV_DEBUG="" ddev describe -j >/tmp/describe.json
-    run ddev exec -s db 'echo ${DDEV_DATABASE}'
+    run ddev exec -s db 'echo ${DDEV_DATABASE}' >/dev/null
     assert_output "mysql:8.0"
 
-    ddev exec 'echo $PLATFORM_RELATIONSHIPS | base64 -d' >relationships.json
+    ddev exec 'echo $PLATFORM_RELATIONSHIPS | base64 -d' >relationships.json 2>/dev/null
     echo "# PLATFORM_RELATIONSHIPS=$(cat relationships.json)" >&3
 
     assert_equal "$(jq -r .database[0].type <relationships.json)" "mysql:8.0"

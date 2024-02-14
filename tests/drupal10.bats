@@ -23,7 +23,7 @@ teardown() {
     run ddev exec -s db 'echo ${DDEV_DATABASE}' 2>/dev/null
     assert_output "mariadb:10.11"
     run ddev exec "php --version | awk 'NR==1 { sub(/\.[0-9]+$/, \"\", \$2); print \$2 }'" 2>/dev/null
-    assert_output "8.1"
+    assert_output "8.2"
 
     ddev exec 'touch ${PLATFORM_CACHE_DIR}/junk.txt' 2>/dev/null
 

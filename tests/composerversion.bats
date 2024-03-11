@@ -28,7 +28,7 @@ teardown() {
         base=$(basename $t)
         expectedComposerVersion=${base#*_}
         echo "# base=${base} expectedComposerVersion=${expectedComposerVersion}" >&3
-        run ddev exec "composer --version | awk '{print \$3}'" 2>/dev/null
+        run ddev exec "composer --version 2>&1 | awk '/^Composer/ {print \$3}'" 2>/dev/null
 
         # If version has a caret, then we just want the first number
         # Otherwise we use the explicit value provided

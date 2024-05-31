@@ -294,7 +294,6 @@ post_install_actions:
   
   hooks:
     post-start:
-    - exec: platform self:update -qy --no-major || true
     - exec: mkdir -p ${PLATFORM_CACHE_DIR} || true
     - exec: '[ ! -z "${PLATFORMSH_CLI_TOKEN:-}" ] && (platform ssh-cert:load  -y || true)'
   {{ if eq .platformapp.build.flavor "composer" }}

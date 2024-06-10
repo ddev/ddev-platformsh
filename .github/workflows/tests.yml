@@ -15,9 +15,9 @@ on:
         required: false
         default: false
 
-# This is required for "gautamkrishnar/keepalive-workflow"
+# Required permissions for keep-alive, used by ddev/github-action-add-on-test
 permissions:
-  contents: write
+  actions: write
 
 jobs:
   tests:
@@ -27,17 +27,12 @@ jobs:
       fail-fast: false
 
     runs-on: ubuntu-latest
-    env:
-      # Don't try interactive behaviors
-      DDEV_NONINTERACTIVE: "true"
-      # Don't send telemetry to amplitude
-      DDEV_NO_INSTRUMENTATION: "true"
+
     steps:
-      - uses: ddev/github-action-add-on-test@v1
+      - uses: ddev/github-action-add-on-test@v2
         with:
           ddev_version: ${{ matrix.ddev_version }}
           token: ${{ secrets.GITHUB_TOKEN }}
           debug_enabled: ${{ github.event.inputs.debug_enabled }}
           addon_repository: ${{ env.GITHUB_REPOSITORY }}
           addon_ref: ${{ env.GITHUB_REF }}
-

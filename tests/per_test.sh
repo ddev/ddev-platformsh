@@ -10,7 +10,7 @@ per_test_setup() {
   # If the template happens to have a .ddev directory, remove as it can break things
   rm -rf .ddev
   # Start with bogus settings so we know we got the right stuff when testing
-  ddev config --project-name=${PROJNAME} --php-version=5.6 --database=mariadb:10.1 --docroot=x --create-docroot --project-type=php --web-environment-add=PLATFORMSH_CLI_TOKEN=notokenrightnow,PLATFORM_PROJECT=notyet,PLATFORM_ENVIRONMENT=notyet
+  ddev config --project-name=${PROJNAME} --php-version=5.6 --database=mariadb:10.1 --docroot=x --project-type=php --web-environment-add=PLATFORMSH_CLI_TOKEN=notokenrightnow,PLATFORM_PROJECT=notyet,PLATFORM_ENVIRONMENT=notyet
   echo "# doing ddev get $source with template ${template} PROJNAME=${PROJNAME} in ${TESTDIR} ($(pwd))" >&3
   ddev get ${PROJECT_SOURCE}
   echo "# doing ddev restart with template ${template} PROJNAME=${PROJNAME} in ${TESTDIR} ($(pwd))" >&3

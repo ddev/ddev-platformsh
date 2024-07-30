@@ -225,7 +225,7 @@ post_install_actions:
       {{ end }}
     {{ else if hasKey $supported_services $service_def.type }}
       {{/* Other services */}}
-      relationships+=($(${DDEV_APPROOT/.ddev/platformsh/generate_{{ $service_def.type }}_relationship.sh '{{ $relationship_name }}' | ${BASE64_ENCODE}))
+      relationships+=($(${DDEV_APPROOT}/.ddev/platformsh/generate_{{ $service_def.type }}_relationship.sh '{{ $relationship_name }}' | ${BASE64_ENCODE}))
       {{ $service_addon := get $supported_services $service_def.type }}
       {{ if $service_addon }}
         echo "Running 'ddev get {{ $service_addon }}'"
@@ -328,7 +328,7 @@ post_install_actions:
   ENDOFHOOKS
 
 yaml_read_files:
-  platformapp: ${DDEV_APPROOT}/.platform.app.yaml
-  services: ${DDEV_APPROOT}/.platform/services.yaml
-  routes: ${DDEV_APPROOT}/.platform/routes.yaml
+  platformapp: .platform.app.yaml
+  services: .platform/services.yaml
+  routes: .platform/routes.yaml
 

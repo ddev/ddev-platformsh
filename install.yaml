@@ -71,6 +71,7 @@ pre_install_actions:
       read platform_project
       echo "platform_project = '${platform_project}'"
       # Put the platform_project in to the project's web environment
+      cd ${DDEV_APPROOT}
       ddev config --web-environment-add PLATFORM_PROJECT=${platform_project}
       echo "PLATFORM_PROJECT set to ${platform_project}"
     fi
@@ -83,6 +84,7 @@ pre_install_actions:
     #ddev-description:Setting PLATFORM_APPLICATION_NAME
     if !( {{ contains "PLATFORM_APPLICATION_NAME" (list .DdevProjectConfig.web_environment | toString) }} ); then
       # Put the platform_project in to the project's web environment
+      cd ${DDEV_APPROOT}
       ddev config --web-environment-add PLATFORM_APPLICATION_NAME={{ .platformapp.name }}
     fi
 

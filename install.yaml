@@ -108,7 +108,7 @@ post_install_actions:
 - |
   #ddev-nodisplay
   #ddev-description:Support composer and python3 dependencies
-  cat <<-ENDDOCKERFILE >> web-build/Dockerfile.platformsh
+  cat <<-ENDDOCKERFILE >> ${DDEV_APPROOT}/.ddev/web-build/Dockerfile.platformsh
   {{ if .platformapp.dependencies.php }}{{ range $pkg, $version := .platformapp.dependencies.php }}{{ if ne $pkg "composer/composer" }}
   ENV COMPOSER_HOME=/usr/local/composer
   RUN echo  "export PATH=\${PATH}:\${COMPOSER_HOME}/vendor/bin" >/etc/bashrc/composerpath.bashrc
@@ -133,17 +133,17 @@ post_install_actions:
       # The double-run here is awkward, but I didn't figure out how to do it with two '-e'
       docker run -i --rm ddev/ddev-utilities perl -p -e "s!APP_URL=.*!APP_URL=${DDEV_PRIMARY_URL}!g" <.env.example | docker run -i --rm ddev/ddev-utilities perl -p -e 's!DB_(HOST|DATABASE|USERNAME|PASSWORD)=(.*)!DB_\1=db!g'   >.env
       ;;
-    drupal9)
-      mkdir -p .drush
+    drupal*)
+      mkdir -p ${DDEV_APPROOT}/.drush
       ;;
   esac
 
 - |
   #ddev-nodisplay
   #ddev-description: Install .environment file into web-entrypoint.d if needed
-  if [ -f ../.environment ]; then
-    mkdir -p web-entrypoint.d
-    cp ../.environment web-entrypoint.d/environment.sh
+  if [ -f ${DDEV_APPROOT}/.environment ]; then
+    mkdir -p ${DDEV_APPROOT}/.ddev/web-entrypoint.d
+    cp ${DDEV_APPROOT}/.environment ${DDEV_APPROOT}/.ddev/web-entrypoint.d/environment.sh
   fi
 
 # Write a config.platformsh.yaml based on calculated values, php version, database, docroot
@@ -177,7 +177,7 @@ post_install_actions:
   {{ $id = $v.id }}
   {{ end }}
 
-  r=$(./platformsh/generate_route.sh "${DDEV_PRIMARY_URL}/"  '{{ $id }}' '{{ $v.production_url }}' '{{ $v.upstream }}' '{{ $v.type }}' '{{ $v.original_url }}' | ${BASE64_ENCODE})
+  r=$(${DDEV_APPROOT}/.ddev/platformsh/generate_route.sh "${DDEV_PRIMARY_URL}/"  '{{ $id }}' '{{ $v.production_url }}' '{{ $v.upstream }}' '{{ $v.type }}' '{{ $v.original_url }}' | ${BASE64_ENCODE})
   #echo "r=$r"
   routes+=(${r})
   {{ end }}
@@ -219,13 +219,13 @@ post_install_actions:
           printf "\n\nThere is an existing database in this project that doesn\'t match the upstream database type.\n Please use 'ddev delete' to delete the existing database and retry, or try 'ddev debug migrate-database {{ $dbtype }}' to migrate the database.\n" >&2
           false
         fi
-        # echo ./platformsh/generate_db_relationship.sh '{{ $relationship_name }}' '{{ $dbtype }}' '{{ $relationship_name }}' 
-        relationships+=($(./platformsh/generate_db_relationship.sh '{{ $relationship_name }}' '{{ $dbtype }}' '{{ $relationship_name }}' | ${BASE64_ENCODE}))
+        # echo ${DDEV_APPROOT}/.ddev/platformsh/generate_db_relationship.sh '{{ $relationship_name }}' '{{ $dbtype }}' '{{ $relationship_name }}' 
+        relationships+=($(${DDEV_APPROOT}/.ddev/platformsh/generate_db_relationship.sh '{{ $relationship_name }}' '{{ $dbtype }}' '{{ $relationship_name }}' | ${BASE64_ENCODE}))
         #printf "relationships length after db=${#relationships[@]}\nrelationships value=$(echo $relationships | ${BASE64_DECODE})"
       {{ end }}
     {{ else if hasKey $supported_services $service_def.type }}
       {{/* Other services */}}
-      relationships+=($(./platformsh/generate_{{ $service_def.type }}_relationship.sh '{{ $relationship_name }}' | ${BASE64_ENCODE}))
+      relationships+=($(${DDEV_APPROOT/.ddev/platformsh/generate_{{ $service_def.type }}_relationship.sh '{{ $relationship_name }}' | ${BASE64_ENCODE}))
       {{ $service_addon := get $supported_services $service_def.type }}
       {{ if $service_addon }}
         echo "Running 'ddev get {{ $service_addon }}'"
@@ -240,13 +240,13 @@ post_install_actions:
   
   {{ $phpversion := trimPrefix "php:" .platformapp.type }}
 
-  if [ -f config.platformsh.yaml ] && ! grep '#ddev-generated' config.platformsh.yaml; then
+  if [ -f ${DDEV_APPROOT}/.ddev/config.platformsh.yaml ] && ! grep '#ddev-generated' ${DDEV_APPROOT}/.ddev/config.platformsh.yaml; then
     echo "Existing config.platformsh.yaml does not have #ddev-generated, so can't be updated"
     exit 2
   fi
-  rm -f .config.platformsh.yaml
+  rm -f ${DDEV_APPROOT}/.ddev/config.platformsh.yaml
   
-  cat <<-EOF >config.platformsh.yaml
+  cat <<-EOF >${DDEV_APPROOT}/.ddev/config.platformsh.yaml
   # #ddev-generated
   # Generated configuration based on platform.sh project configuration
   disable_settings_management: true
@@ -290,7 +290,7 @@ post_install_actions:
   
   # Because "ENDOFHOOKS" is quoted here, no variable expansion occurs
   # so everything is left alone.
-  cat <<-"ENDOFHOOKS" >>config.platformsh.yaml
+  cat <<-"ENDOFHOOKS" >>${DDEV_APPROOT}/.ddev/config.platformsh.yaml
   
   hooks:
     post-start:
@@ -328,7 +328,7 @@ post_install_actions:
   ENDOFHOOKS
 
 yaml_read_files:
-  platformapp: .platform.app.yaml
-  services: .platform/services.yaml
-  routes: .platform/routes.yaml
+  platformapp: ${DDEV_APPROOT}/.platform.app.yaml
+  services: ${DDEV_APPROOT}/.platform/services.yaml
+  routes: ${DDEV_APPROOT}/.platform/routes.yaml
 

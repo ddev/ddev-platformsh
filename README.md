@@ -13,18 +13,18 @@ Make sure you have [DDEV v1.22.1+ installed](https://ddev.readthedocs.io/en/late
 1. Clone your project repository (e.g. `platform get <projectid>`)
 2. `cd` into your project directory
 3. Run `ddev config` and answer the questions as appropriate
-4. Run `ddev get ddev/ddev-platformsh` and answer the questions as appropriate
+4. Run `ddev add-on get ddev/ddev-platformsh` (or `ddev get ddev/ddev-platformsh` if your DDEV version is older than 1.23.5) and answer the questions as appropriate
 5. Run `ddev start`
 6. (Optional) Run `ddev pull platform` to retrieve a copy of the database and contents from the project's file mounts from the environment you entered in step #5
    1. If you only want to retrieve the database (skipping the file mounts), add the `--skip-files` flag to the `ddev pull platform` command
 
 ### Upgrade
 
-To upgrade your version of ddev-platformsh, repeat the `ddev get ddev/ddev-platformsh` to get the latest release. To see the installed version, `ddev get --installed`.
+To upgrade your version of ddev-platformsh, repeat the `ddev add-on get ddev/ddev-platformsh` to get the latest release. To see the installed version, `ddev add-on list --installed`.
 
 ### Run it again if you change your Platform.sh configuration
 
-If you change your `.platform.app.yaml` or something in your `.platform` directory, repeat the `ddev get ddev/ddev-platformsh` so that the generated configuration for DDEV will be updated.
+If you change your `.platform.app.yaml` or something in your `.platform` directory, repeat the `ddev add-on get ddev/ddev-platformsh` so that the generated configuration for DDEV will be updated.
 
 ## Notes
 
@@ -81,5 +81,3 @@ These Platform.sh templates are included in the automated tests that run nightly
 - [ ] Let us know what's important to you!
 
 **Contributed and maintained by [@rfay](https://github.com/rfay) and [@lolautruche](https://github.com/lolautruche)**
-
-

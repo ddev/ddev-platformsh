@@ -1,6 +1,6 @@
 name: ddev-platformsh
 
-ddev_version_constraint: 'v1.23.3'
+ddev_version_constraint: '>= v1.23.3'
 
 project_files:
   - web-build/Dockerfile.platformsh

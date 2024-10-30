@@ -2,21 +2,20 @@
 
 ## What is ddev-platformsh?
 
-This repository is used with `ddev get ddev/ddev-platformsh` to get a rich integration between your checked-out Platform.sh project and [DDEV](https://github.com/ddev/ddev).
+This repository is used with `ddev add-on get ddev/ddev-platformsh` to get a rich integration between your checked-out Platform.sh project and [DDEV](https://github.com/ddev/ddev).
 
 ## Using with a Platform.sh project
 ### Dependencies
 
-Make sure you have [DDEV v1.22.1+ installed](https://ddev.readthedocs.io/en/latest/users/install/ddev-installation/)
+Make sure you have [DDEV v1.23.3+ installed](https://ddev.readthedocs.io/en/latest/users/install/ddev-installation/)
 
 ### Install
 1. Clone your project repository (e.g. `platform get <projectid>`)
 2. `cd` into your project directory
 3. Run `ddev config` and answer the questions as appropriate
-4. Run `ddev add-on get ddev/ddev-platformsh` (or `ddev get ddev/ddev-platformsh` if your DDEV version is older than 1.23.5) and answer the questions as appropriate
+4. Run `ddev add-on get ddev/ddev-platformsh` (or `ddev get ddev/ddev-platformsh` if your DDEV version is older than v1.23.5) and answer the questions as appropriate
 5. Run `ddev start`
-6. (Optional) Run `ddev pull platform` to retrieve a copy of the database and contents from the project's file mounts from the environment you entered in step #5
-   1. If you only want to retrieve the database (skipping the file mounts), add the `--skip-files` flag to the `ddev pull platform` command
+6. (Optional) Run `ddev pull platform` to retrieve a copy of the database and contents from the project's file mounts from the environment you entered in step #5. (If you only want to retrieve the database (skipping the file mounts), add the `--skip-files` flag to the `ddev pull platform` command.)
 
 ### Upgrade
 
@@ -28,12 +27,12 @@ If you change your `.platform.app.yaml` or something in your `.platform` directo
 
 ## Notes
 
-* If your local project has a different database type than the upstream (Platform.sh) database, it will conflict, so please back up your database with `ddev export-db` and `ddev delete -y` before starting the project with new config based on upstream.
+* If your local project has a different database type than the upstream (Platform.sh) database, it will conflict, so please back up your database with `ddev export-db` and `ddev delete` before starting the project with new config based on upstream.
 * Your experience is super-important: Please let us know about how it went for you in any of the [DDEV support venues](https://ddev.readthedocs.io/en/latest/users/support/)
 
 ## What does it do right now?
 
-* Works with many projects of type `php`, for example, `php:8.1` or `php:8.2`. It does not work with non-php projects.
+* Works with many projects of type `php`, for example, `php:8.2` or `php:8.3`. It does not work with non-php projects.
 * Takes your checked-out Platform.sh project and configures DDEV based on that information.
     * PHP and Database version
     * hooks are converted to DDEV post-start hooks
@@ -80,4 +79,4 @@ These Platform.sh templates are included in the automated tests that run nightly
 - [x] Automatically configure the .ddev/providers/platform so you can immediately do a `ddev pull platform` with no configuration effort.
 - [ ] Let us know what's important to you!
 
-**Contributed and maintained by [@rfay](https://github.com/rfay) and [@lolautruche](https://github.com/lolautruche)**
+**Maintained by [@rfay](https://github.com/rfay)**

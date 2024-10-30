@@ -1,5 +1,7 @@
 name: ddev-platformsh
 
+ddev_version_constraint: 'v1.23.3'
+
 project_files:
   - web-build/Dockerfile.platformsh
   - homeadditions/.bashrc.d/platformsh-environment.sh
@@ -16,12 +18,6 @@ global_files:
   - commands/web/platform
 
 pre_install_actions:
-    # Make sure we have a ddev version that can support what we do here
-  - |
-    #ddev-nodisplay
-    #ddev-description:Checking DDEV version
-    (ddev debug capabilities | grep multiple-upload-dirs >/dev/null) || (echo "Please upgrade DDEV to v1.22+ for appropriate capabilities" && false)
-
   - |
     #ddev-nodisplay
     #ddev-description:pull ddev/ddev-utilities

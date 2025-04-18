@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 per_test_setup() {
   set -e -o pipefail
@@ -11,8 +11,8 @@ per_test_setup() {
   rm -rf .ddev
   # Start with bogus settings so we know we got the right stuff when testing
   ddev config --project-name=${PROJNAME} --php-version=5.6 --database=mariadb:10.1 --docroot=x --create-docroot --project-type=php --web-environment-add=PLATFORMSH_CLI_TOKEN=notokenrightnow,PLATFORM_PROJECT=notyet,PLATFORM_ENVIRONMENT=notyet
-  echo "# doing ddev get $source with template ${template} PROJNAME=${PROJNAME} in ${TESTDIR} ($(pwd))" >&3
-  ddev get ${PROJECT_SOURCE}
+  echo "# doing ddev add-on get $source with template ${template} PROJNAME=${PROJNAME} in ${TESTDIR} ($(pwd))" >&3
+  ddev add-on get ${PROJECT_SOURCE}
   echo "# doing ddev restart with template ${template} PROJNAME=${PROJNAME} in ${TESTDIR} ($(pwd))" >&3
   ddev restart >/dev/null
   if [ -f ${PROJECT_SOURCE}/tests/testdata/${template}/db.sql.gz ]; then

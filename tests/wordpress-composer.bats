@@ -1,6 +1,6 @@
-# Requires bats-assert and bats-support
-# brew tap kaos/shell &&
-# brew install bats-core bats-assert bats-support jq mkcert yq
+#!/usr/bin/env bats
+
+# see setup.sh for instructions
 setup() {
   load setup.sh
 }

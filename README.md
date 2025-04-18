@@ -7,13 +7,13 @@ This repository is used with `ddev add-on get ddev/ddev-platformsh` to get a ric
 ## Using with a Platform.sh project
 ### Dependencies
 
-Make sure you have [DDEV v1.23.3+ installed](https://ddev.readthedocs.io/en/latest/users/install/ddev-installation/)
+Make sure you have [DDEV v1.23.3+ installed](https://ddev.readthedocs.io/en/stable/users/install/ddev-installation/)
 
 ### Install
 1. Clone your project repository (e.g. `platform get <projectid>`)
 2. `cd` into your project directory
 3. Run `ddev config` and answer the questions as appropriate
-4. Run `ddev add-on get ddev/ddev-platformsh` (or `ddev get ddev/ddev-platformsh` if your DDEV version is older than v1.23.5) and answer the questions as appropriate
+4. Run `ddev add-on get ddev/ddev-platformsh` and answer the questions as appropriate
 5. Run `ddev start`
 6. (Optional) Run `ddev pull platform` to retrieve a copy of the database and contents from the project's file mounts from the environment you entered in step #5. (If you only want to retrieve the database (skipping the file mounts), add the `--skip-files` flag to the `ddev pull platform` command.)
 
@@ -28,7 +28,7 @@ If you change your `.platform.app.yaml` or something in your `.platform` directo
 ## Notes
 
 * If your local project has a different database type than the upstream (Platform.sh) database, it will conflict, so please back up your database with `ddev export-db` and `ddev delete` before starting the project with new config based on upstream.
-* Your experience is super-important: Please let us know about how it went for you in any of the [DDEV support venues](https://ddev.readthedocs.io/en/latest/users/support/)
+* Your experience is super-important: Please let us know about how it went for you in any of the [DDEV support venues](https://ddev.readthedocs.io/en/stable/users/support/)
 
 ## What does it do right now?
 
@@ -47,7 +47,7 @@ If you change your `.platform.app.yaml` or something in your `.platform` directo
     * Redis-persistent
     * Memcached
     * ElasticSearch
-* Provides the following [Platform.sh-provided environmental variables](https://docs.platform.sh/development/variables/use-variables.html#use-platformsh-provided-variables): 
+* Provides the following [Platform.sh-provided environmental variables](https://docs.platform.sh/development/variables/use-variables.html#use-platformsh-provided-variables):
   * PLATFORM_APP_DIR
   * PLATFORM_APPLICATION_NAME
   * PLATFORM_CACHE_DIR

@@ -6,11 +6,13 @@
 
 # For local tests, install bats-core, bats-assert, bats-file, bats-support
 # And run this in the add-on root directory:
-#   bats ./tests/test.bats
+#   bats ./tests
+# Or run individual test file with:
+#   bats ./tests/php.bats
 # To exclude release tests:
-#   bats ./tests/test.bats --filter-tags '!release'
+#   bats ./tests --filter-tags '!release'
 # For debugging:
-#   bats ./tests/test.bats --show-output-of-passing-tests --verbose-run --print-output-on-failure
+#   bats ./tests --show-output-of-passing-tests --verbose-run --print-output-on-failure
 
 bats_require_minimum_version 1.8.0
 set -eu -o pipefail

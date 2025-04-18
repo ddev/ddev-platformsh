@@ -1,13 +1,21 @@
-[![tests](https://github.com/ddev/ddev-platformsh/actions/workflows/tests.yml/badge.svg)](https://github.com/ddev/ddev-platformsh/actions/workflows/tests.yml) ![project is maintained](https://img.shields.io/maintenance/yes/2024.svg)
+[![add-on registry](https://img.shields.io/badge/DDEV-Add--on_Registry-blue)](https://addons.ddev.com)
+[![tests](https://github.com/ddev/ddev-platformsh/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/ddev/ddev-platformsh/actions/workflows/tests.yml?query=branch%3Amain)
+[![last commit](https://img.shields.io/github/last-commit/ddev/ddev-platformsh)](https://github.com/ddev/ddev-platformsh/commits)
+[![release](https://img.shields.io/github/v/release/ddev/ddev-platformsh)](https://github.com/ddev/ddev-platformsh/releases/latest)
 
-## What is ddev-platformsh?
+# DDEV Platform.sh
 
-This repository is used with `ddev add-on get ddev/ddev-platformsh` to get a rich integration between your checked-out Platform.sh project and [DDEV](https://github.com/ddev/ddev).
+## Overview
+
+[Platform.sh](https://platform.sh/) is a unified, secure, enterprise-grade platform for building, running and scaling web applications.
+
+This repository is used with `ddev add-on get ddev/ddev-platformsh` to get a rich integration between your checked-out Platform.sh project and [DDEV](https://ddev.com).
 
 ## Using with a Platform.sh project
+
 ### Dependencies
 
-Make sure you have [DDEV v1.23.3+ installed](https://ddev.readthedocs.io/en/stable/users/install/ddev-installation/)
+Make sure you have [DDEV v1.24.3+ installed](https://ddev.readthedocs.io/en/stable/users/install/ddev-installation/)
 
 ### Install
 1. Clone your project repository (e.g. `platform get <projectid>`)
@@ -78,5 +86,7 @@ These Platform.sh templates are included in the automated tests that run nightly
 - [x] Automatically figure out the name and other information of the upstream project
 - [x] Automatically configure the .ddev/providers/platform so you can immediately do a `ddev pull platform` with no configuration effort.
 - [ ] Let us know what's important to you!
+
+## Credits
 
 **Maintained by [@rfay](https://github.com/rfay)**

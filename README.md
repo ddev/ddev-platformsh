@@ -43,18 +43,18 @@ If you change your `.platform.app.yaml` or something in your `.platform` directo
 * Works with many projects of type `php`, for example, `php:8.2` or `php:8.3`. It does not work with non-php projects.
 * Takes your checked-out Platform.sh project and configures DDEV based on that information.
     * PHP and Database version
-    * hooks are converted to DDEV post-start hooks
+    * Hooks are converted to DDEV post-start hooks
     * A working `ddev pull platform` integration with all mounts is created.
     * Exposes specific `$PLATFORM_` variables (e.g., `$PLATFORM_RELATIONSHIPS`, `$PLATFORM_ROUTES`)
 * Supports the following services:
     * Databases
       * MariaDB
       * Oracle MySQL
-      * Postgresql
+      * PostgreSQL
     * Redis
     * Redis-persistent
     * Memcached
-    * ElasticSearch
+    * Elasticsearch
 * Provides the following [Platform.sh-provided environmental variables](https://docs.platform.sh/development/variables/use-variables.html#use-platformsh-provided-variables):
   * PLATFORM_APP_DIR
   * PLATFORM_APPLICATION_NAME

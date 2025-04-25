@@ -10,14 +10,19 @@ per_test_setup() {
   # If the template happens to have a .ddev directory, remove as it can break things
   rm -rf .ddev
   # Start with bogus settings so we know we got the right stuff when testing
-  ddev config --project-name=${PROJNAME} --php-version=5.6 --database=mariadb:10.1 --docroot=x --create-docroot --project-type=php --web-environment-add=PLATFORMSH_CLI_TOKEN=notokenrightnow,PLATFORM_PROJECT=notyet,PLATFORM_ENVIRONMENT=notyet
+  ddev config --project-name=${PROJNAME} --php-version=5.6 --database=mariadb:10.1 --docroot=x --project-type=php --web-environment-add=PLATFORMSH_CLI_TOKEN=notokenrightnow,PLATFORM_PROJECT=notyet,PLATFORM_ENVIRONMENT=notyet
   echo "# doing ddev add-on get $source with template ${template} PROJNAME=${PROJNAME} in ${TESTDIR} ($(pwd))" >&3
-  ddev add-on get ${PROJECT_SOURCE}
-  echo "# doing ddev restart with template ${template} PROJNAME=${PROJNAME} in ${TESTDIR} ($(pwd))" >&3
-  ddev restart >/dev/null
+  run ddev add-on get ${PROJECT_SOURCE}
+  assert_success
+
   if [ -f ${PROJECT_SOURCE}/tests/testdata/${template}/db.sql.gz ]; then
-    ddev import-db --file=${PROJECT_SOURCE}/tests/testdata/${template}/db.sql.gz
+    run ddev import-db --file=${PROJECT_SOURCE}/tests/testdata/${template}/db.sql.gz
+    assert_success
   fi
+
+  echo "# doing ddev restart with template ${template} PROJNAME=${PROJNAME} in ${TESTDIR} ($(pwd))" >&3
+  run ddev restart
+  assert_success
 }
 
 per_test_teardown() {

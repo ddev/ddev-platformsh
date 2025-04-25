@@ -217,7 +217,7 @@ post_install_actions:
       relationships+=($(./platformsh/generate_{{ $service_def.type }}_relationship.sh '{{ $relationship_name }}' | ${BASE64_ENCODE}))
       {{ $service_addon := get $supported_services $service_def.type }}
       {{ if $service_addon }}
-        echo "Running 'ddev get {{ $service_addon }}'"
+        echo "Running 'ddev add-on get {{ $service_addon }}'"
         ddev add-on get {{ $service_addon }}
       {{ end }}
     {{ end }}

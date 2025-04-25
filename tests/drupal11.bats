@@ -9,7 +9,7 @@ teardown() {
   load teardown.sh
 }
 
-@test "drupal10" {
+@test "drupal11" {
   load per_test.sh
   template="drupal11"
   for source in $PROJECT_SOURCE ddev/ddev-platformsh; do
@@ -18,7 +18,7 @@ teardown() {
     ddev exec drush cr 2>/dev/null
 
     run curl -L -s http://${PROJNAME}.ddev.site/
-    assert_output --partial "Test of ddev-platformsh on drupal10"
+    assert_output --partial "Test of ddev-platformsh on drupal11"
 
     run ddev exec -s db 'echo ${DDEV_DATABASE}' 2>/dev/null
     assert_output "mariadb:10.11"

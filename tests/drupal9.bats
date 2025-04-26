@@ -15,7 +15,7 @@ teardown() {
   for source in $PROJECT_SOURCE ddev/ddev-platformsh; do
     per_test_setup
 
-    run ddev exec drush cr
+    run ddev exec drush cr 2>/dev/null
     assert_success
 
     run curl -L -s http://${PROJNAME}.ddev.site/

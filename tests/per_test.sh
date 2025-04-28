@@ -19,6 +19,7 @@ per_test_setup() {
   assert_success
 
   if [ -f ${PROJECT_SOURCE}/tests/testdata/${template}/db.sql.gz ]; then
+    echo "# Importing database ${PROJECT_SOURCE}/tests/testdata/${template}/db.sql.gz" >&3
     run ddev import-db --file=${PROJECT_SOURCE}/tests/testdata/${template}/db.sql.gz
     assert_success
   fi

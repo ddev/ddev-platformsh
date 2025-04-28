@@ -219,8 +219,6 @@ post_install_actions:
       {{ if $service_addon }}
         echo "Running 'ddev get {{ $service_addon }}'"
         ddev add-on get {{ $service_addon }}
-        # TODO: Remove this when current redis works
-        if [ "{{ $service_addon }}" = "ddev/ddev-redis" ]; then ddev add-on get {{ $service_addon }} --version v1.2.3; fi
       {{ end }}
     {{ end }}
   {{ end }}

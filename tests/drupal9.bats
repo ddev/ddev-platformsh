@@ -15,7 +15,8 @@ teardown() {
   for source in $PROJECT_SOURCE ddev/ddev-platformsh; do
     per_test_setup
 
-    ddev exec drush cr 2>/dev/null
+    run ddev exec drush cr 2>/dev/null
+    assert_success
 
     run curl -L -s http://${PROJNAME}.ddev.site/
     assert_output --partial "this is a test of ddev-platformsh drupal9"

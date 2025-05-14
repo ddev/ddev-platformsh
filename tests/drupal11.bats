@@ -22,7 +22,7 @@ teardown() {
     assert_output --partial "Test of ddev-platformsh on drupal11"
 
     run ddev exec -s db 'echo ${DDEV_DATABASE}' 2>/dev/null
-    assert_output "mariadb:10.6"
+    assert_output "mariadb:10.11"
     run ddev exec "php --version | awk 'NR==1 { sub(/\.[0-9]+$/, \"\", \$2); print \$2 }'" 2>/dev/null
     assert_output "8.3"
 

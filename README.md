@@ -3,7 +3,11 @@
 [![last commit](https://img.shields.io/github/last-commit/ddev/ddev-platformsh)](https://github.com/ddev/ddev-platformsh/commits)
 [![release](https://img.shields.io/github/v/release/ddev/ddev-platformsh)](https://github.com/ddev/ddev-platformsh/releases/latest)
 
-# DDEV Platform.sh
+# Deprecated DDEV Platform.sh
+
+## This add-on is deprecated in favor of ddev-upsun
+
+**We're trying to support your "Upsun Fixed" issues and needs in the [ddev-upsun](https://github.com/ddev/ddev-upsun) add-on. Please open issues there is you have any trouble.**
 
 ## Overview
 
